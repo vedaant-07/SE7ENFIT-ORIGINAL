@@ -15,10 +15,20 @@ WebBrowser.maybeCompleteAuthSession();
 
 export const isGoogleConfigured = Boolean(GOOGLE_WEB_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID || GOOGLE_IOS_CLIENT_ID);
 
+const unavailablePrompt = async () => ({
+  type: 'error',
+  errorCode: 'google_oauth_not_configured',
+  params: {},
+});
+
 export function useGoogleAuthRequest() {
-  // Do not override redirectUri here. The Expo Google provider derives the
-  // correct native redirect URI for Android/iOS OAuth clients. Passing the app
-  // scheme manually can trigger Google 400 malformed-request errors.
+  // Important: screens must not crash when Google IDs are missing from a preview
+  // build. Expo's Google provider can throw during render when every client ID
+  // is empty, so return a disabled request instead of initializing OAuth.
+  if (!isGoogleConfigured) {
+    return [null, null, unavailablePrompt] as const;
+  }
+
   return Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
