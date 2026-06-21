@@ -3,7 +3,7 @@ workflows:
     name: Android ARM64 APK Preview
     max_build_duration: 60
 
-        environment:
+    environment:
       node: 20
       java: 17
       vars:
@@ -25,12 +25,6 @@ workflows:
         script: |
           cd SE7ENFIT-ORIGINAL-main
           npx expo prebuild --platform android --clean
-
-      - name: Print Android SHA1 for Google OAuth
-        script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew signingReport
 
       - name: Build ARM64 release APK
         script: |
@@ -40,39 +34,3 @@ workflows:
 
     artifacts:
       - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.apk
-
-  android-playstore-aab-production:
-    name: Android Play Store AAB Production
-    max_build_duration: 60
-
-        environment:
-      node: 20
-      java: 17
-      vars:
-        EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
-        EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "106664084110iaj88pvijfgcl4it0cff6dm62326h1d.apps.googleusercontent.com"
-        EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "10666408411-4t6tm45luqqa1q8la40f8q44r5js1rik.apps.googleusercontent.com"
-
-    scripts:
-      - name: Install dependencies
-        script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npm install
-
-      - name: Install Expo and EAS CLI
-        script: |
-          npm install -g expo-cli eas-cli
-
-      - name: Generate native Android project
-        script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npx expo prebuild --platform android --clean
-
-      - name: Build release AAB
-        script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew bundleRelease
-
-    artifacts:
-      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.aab
