@@ -4,12 +4,13 @@ import { useRouter } from 'expo-router';
 import { Building2, ChevronRight, Dumbbell, Loader2, Zap } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Logo from '@/components/se7enfit/Logo';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Welcome() {
   const router = useRouter();
   const { user, token, isLoadingAuth } = useAuth();
+  const { colors, radius, spacing, typography } = useTheme();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {

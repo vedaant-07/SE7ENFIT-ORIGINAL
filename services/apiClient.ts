@@ -154,14 +154,20 @@ export async function apiFetch<T = unknown>(
 
   const isJson =
     res.headers.get('content-type')?.includes('application/json') ?? false;
-  const parsed = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
+  const rawText = isJson ? null : await res.text().catch(() => null);
+  const parsed = isJson ? await res.json().catch(() => null) : rawText;
 
   if (!res.ok) {
+    // When backend returns HTML (e.g. Express "Cannot POST /route"), show a clean message.
+    const isHtml = typeof rawText === 'string' && (rawText.includes('<!DOCTYPE') || rawText.includes('<html'));
+
     const message =
       (isJson && parsed && typeof parsed === 'object' && 'message' in parsed && String((parsed as { message: unknown }).message)) ||
-      (typeof parsed === 'string' && parsed) ||
+      (isHtml && res.status === 404 ? 'Endpoint not found on the server.' : null) ||
+      (isHtml ? 'Server error. Please try again later.' : null) ||
+      (typeof rawText === 'string' && !isHtml && rawText.trim().slice(0, 150)) ||
       `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, parsed);
+    throw new ApiError(message, res.status, isHtml ? null : parsed);
   }
 
   return parsed as T;
