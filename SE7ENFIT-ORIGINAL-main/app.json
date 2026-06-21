@@ -77,6 +77,16 @@
         {
           "photosPermission": "SE7EN FIT needs photo library access to select profile photos."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
+        }
       ]
     ],
     "experiments": {
