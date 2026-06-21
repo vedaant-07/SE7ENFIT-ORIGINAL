@@ -4,8 +4,6 @@ workflows:
     max_build_duration: 60
 
     environment:
-      groups:
-        - se7enfit-production
       node: 20
       java: 17
 
