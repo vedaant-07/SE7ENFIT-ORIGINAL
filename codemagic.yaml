@@ -4,12 +4,10 @@ workflows:
     max_build_duration: 60
 
     environment:
+      groups:
+        - se7enfit-production
       node: 20
       java: 17
-      vars:
-        EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
-        EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "106664084110iaj88pvijfgcl4it0cff6dm62326h1d.apps.googleusercontent.com"
-        EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "10666408411-4t6tm45luqqa1q8la40f8q44r5js1rik.apps.googleusercontent.com"
 
     scripts:
       - name: Install dependencies
