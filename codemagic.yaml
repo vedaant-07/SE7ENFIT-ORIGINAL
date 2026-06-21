@@ -12,6 +12,7 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
+          cd SE7ENFIT-ORIGINAL-main
           npm install
 
       - name: Install Expo and EAS CLI
@@ -20,16 +21,17 @@ workflows:
 
       - name: Generate native Android project
         script: |
+          cd SE7ENFIT-ORIGINAL-main
           npx expo prebuild --platform android --clean
 
       - name: Build ARM64 release APK
         script: |
-          cd android
+          cd SE7ENFIT-ORIGINAL-main/android
           chmod +x gradlew
           ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
 
     artifacts:
-      - android/app/build/outputs/**/*.apk
+      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.apk
 
   android-playstore-aab-production:
     name: Android Play Store AAB Production
@@ -44,6 +46,7 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
+          cd SE7ENFIT-ORIGINAL-main
           npm install
 
       - name: Install Expo and EAS CLI
@@ -52,13 +55,14 @@ workflows:
 
       - name: Generate native Android project
         script: |
+          cd SE7ENFIT-ORIGINAL-main
           npx expo prebuild --platform android --clean
 
       - name: Build release AAB
         script: |
-          cd android
+          cd SE7ENFIT-ORIGINAL-main/android
           chmod +x gradlew
           ./gradlew bundleRelease
 
     artifacts:
-      - android/app/build/outputs/**/*.aab
+      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.aab
