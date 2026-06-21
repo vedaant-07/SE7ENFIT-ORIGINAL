@@ -21,31 +21,17 @@ import {
 } from '@expo-google-fonts/space-grotesk';
 
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { registerBackgroundSync, runBackgroundSyncOnce } from '@/services/backgroundSyncService';
-import { configurePushNotificationHandler, registerForPushNotifications } from '@/services/pushNotificationService';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 
 function ThemedRoot() {
   const { colors, isDark } = useTheme();
-  const { token } = useAuth();
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(colors.background);
+    SystemUI.setBackgroundColorAsync(colors.background).catch(() => undefined);
   }, [colors.background]);
-
-  useEffect(() => {
-    configurePushNotificationHandler().catch(() => undefined);
-    registerBackgroundSync().catch(() => undefined);
-    runBackgroundSyncOnce().catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
-    registerForPushNotifications().catch(() => undefined);
-  }, [token]);
 
   return (
     <>
@@ -74,7 +60,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [fontsLoaded, fontError]);
 
