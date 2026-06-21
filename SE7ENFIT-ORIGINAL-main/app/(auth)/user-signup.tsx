@@ -18,7 +18,7 @@ export default function UserSignup() {
   const { colors, typography } = useTheme();
 
   const router = useRouter();
-  const { register, verifyOtp } = useAuth();
+  const { register, verifyOtp, logout } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,12 +27,14 @@ export default function UserSignup() {
   const [otp, setOtp] = useState('');
   const [showOtp, setShowOtp] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [gymInfo, setGymInfo] = useState<{ valid: boolean } | null>(null);
   const [gymCodeError, setGymCodeError] = useState('');
 
   const handleSubmit = async () => {
     setError('');
+    setSuccess('');
     const cleanName = name.trim();
     const cleanEmail = email.trim();
     if (!cleanName) {
@@ -50,7 +52,11 @@ export default function UserSignup() {
     setLoading(true);
     try {
       await register({ name: cleanName, email: cleanEmail, password, role: 'user', gymCode: gymCode.trim() || undefined });
-      router.replace('/(user)/onboarding');
+      // Keep signup stable: backend may return a token immediately, but onboarding
+      // APIs can be created later. Send user to manual login after account creation.
+      await logout().catch(() => undefined);
+      setSuccess('Account created successfully. Please log in with your email and password.');
+      setTimeout(() => router.replace('/(auth)/user-login'), 700);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Registration failed');
     } finally {
@@ -147,6 +153,7 @@ export default function UserSignup() {
           </Text>
         </View>
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
+        {success ? <Text style={{ color: colors.accent, fontFamily: typography.bodySemibold, marginBottom: 12 }}>{success}</Text> : null}
         <View style={{ gap: 16 }}>
           <Input label="Full Name" leftIcon={<User size={16} color={colors.mutedForeground} />} placeholder="Your full name" value={name} onChangeText={setName} autoCapitalize="words" />
           <Input label="Email" leftIcon={<Mail size={16} color={colors.mutedForeground} />} placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
