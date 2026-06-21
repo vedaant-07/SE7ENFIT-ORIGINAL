@@ -1,6 +1,5 @@
 // AdvertisementCarousel - SE7EN FIT User Dashboard
-// Swipeable banner carousel for ads, promotions, offers, and announcements.
-// Premium dark UI with neon green accent.
+// Safe swipeable banner carousel for ads, promotions, offers, and announcements.
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -11,24 +10,20 @@ import {
   Image,
   Dimensions,
   Animated,
-  StyleSheet,
+  Linking,
 } from 'react-native';
-import { Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ExternalLink, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import type {
-  Advertisement,
-  AdvertisementBadgeVariant,
-} from '@/src/types/advertisement';
+import type { Advertisement, AdvertisementBadgeVariant } from '@/src/types/advertisement';
 import { getBadgeFromType, isAdActive } from '@/src/types/advertisement';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CAROUSEL_WIDTH = SCREEN_WIDTH - 24 * 2;
+const CARD_SIDE_PADDING = 24;
+const CAROUSEL_WIDTH = SCREEN_WIDTH - CARD_SIDE_PADDING * 2;
 const CARD_HEIGHT = 140;
-const AUTO_SLIDE_INTERVAL = 4000; // 4 seconds
+const AUTO_SLIDE_INTERVAL = 4000;
 
-// Badge colors by type
 const BADGE_COLORS: Record<AdvertisementBadgeVariant, string> = {
   AD: '#F5A623',
   OFFER: '#29E06B',
@@ -42,45 +37,33 @@ type Props = {
   onClick: (adId: string) => void;
 };
 
-export default function AdvertisementCarousel({
-  advertisements,
-  onImpression,
-  onClick,
-}: Props) {
+export default function AdvertisementCarousel({ advertisements, onImpression, onClick }: Props) {
   const { colors, radius, spacing, typography } = useTheme();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
-  const autoSlideTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSlideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const trackedImpressions = useRef<Set<string>>(new Set());
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Filter to only active ads
   const activeAds = advertisements.filter(isAdActive);
 
-  // Auto-slide functionality
   useEffect(() => {
-    if (activeAds.length <= 1) return;
+    if (activeAds.length <= 1) return undefined;
 
     autoSlideTimer.current = setInterval(() => {
       setActiveIndex((prev) => {
         const nextIndex = (prev + 1) % activeAds.length;
-        scrollViewRef.current?.scrollTo({
-          x: nextIndex * CAROUSEL_WIDTH,
-          animated: true,
-        });
+        scrollViewRef.current?.scrollTo({ x: nextIndex * CAROUSEL_WIDTH, animated: true });
         return nextIndex;
       });
     }, AUTO_SLIDE_INTERVAL);
 
     return () => {
-      if (autoSlideTimer.current) {
-        clearInterval(autoSlideTimer.current);
-      }
+      if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
     };
   }, [activeAds.length]);
 
-  // Track impression when ad becomes visible
   useEffect(() => {
     if (activeAds.length === 0) return;
     const currentAd = activeAds[activeIndex];
@@ -90,110 +73,31 @@ export default function AdvertisementCarousel({
     }
   }, [activeIndex, activeAds, onImpression]);
 
-  // Handle manual scroll
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-    { useNativeDriver: false }
-  );
+  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false });
 
-  const handleScrollEnd = useCallback(
-    (event: any) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / CAROUSEL_WIDTH);
-      setActiveIndex(index);
-    },
-    []
-  );
+  const handleScrollEnd = useCallback((event: { nativeEvent: { contentOffset: { x: number } } }) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / CAROUSEL_WIDTH);
+    setActiveIndex(index);
+  }, []);
 
-  // Handle CTA press
   const handleCTAPress = useCallback(
     (ad: Advertisement) => {
       onClick(ad.id);
       if (!ad.ctaTarget) return;
-
       if (ad.ctaTargetType === 'internal_route') {
         router.push(ad.ctaTarget as never);
       } else if (ad.ctaTargetType === 'external_url') {
-        Linking.openURL(ad.ctaTarget).catch(() => {
-          // Silently fail for invalid URLs
-        });
+        Linking.openURL(ad.ctaTarget).catch(() => undefined);
       }
     },
-    [onClick, router]
+    [onClick, router],
   );
 
-  // Render single advertisement card
-  const renderCard = (ad: Advertisement) => {
-    const badge = getBadgeFromType(ad.type);
-    const badgeColor = BADGE_COLORS[badge];
-
-    return (
-      <View
-        key={ad.id}
-        style={{
-          width: CAROUSEL_WIDTH,
-          height: CARD_HEIGHT,
-        }}
-      >
-        <View style={styles.cardContainer}>
-          {/* Background image or gradient */}
-          {ad.imageUrl ? (
-            <Image
-              source={{ uri: ad.imageUrl }}
-              style={styles.backgroundImage}
-              resizeMode="cover"
-            />
-          ) : null}
-
-          {/* Gradient overlay */}
-          <View style={styles.gradientOverlay} />
-
-          {/* Content */}
-          <View style={styles.contentContainer}>
-            {/* Badge */}
-            <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-              <Text style={styles.badgeText}>{ad.badgeText || badge}</Text>
-            </View>
-
-            {/* Title and description */}
-            <View style={styles.textContainer}>
-              <Text style={styles.title} numberOfLines={2}>
-                {ad.title}
-              </Text>
-              <Text style={styles.description} numberOfLines={2}>
-                {ad.description}
-              </Text>
-            </View>
-
-            {/* CTA Button */}
-            {ad.ctaText ? (
-              <Pressable
-                onPress={() => handleCTAPress(ad)}
-                style={({ pressed }) => [
-                  styles.ctaButton,
-                  { opacity: pressed ? 0.85 : 1 },
-                ]}
-              >
-                <Text style={styles.ctaText}>{ad.ctaText}</Text>
-                {ad.ctaTargetType === 'external_url' ? (
-                  <ExternalLink size={12} color={colors.background} />
-                ) : (
-                  <ChevronRight size={12} color={colors.background} />
-                )}
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  if (activeAds.length === 0) {
-    return null; // Hide carousel if no ads
-  }
+  if (activeAds.length === 0) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={{ marginBottom: spacing.lg }}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -204,21 +108,87 @@ export default function AdvertisementCarousel({
         scrollEventThrottle={16}
         decelerationRate="fast"
         snapToInterval={CAROUSEL_WIDTH}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: CARD_SIDE_PADDING }}
       >
-        {activeAds.map(renderCard)}
+        {activeAds.map((ad) => {
+          const badge = getBadgeFromType(ad.type);
+          const badgeColor = BADGE_COLORS[badge];
+
+          return (
+            <View key={ad.id} style={{ width: CAROUSEL_WIDTH, height: CARD_HEIGHT }}>
+              <View
+                style={{
+                  flex: 1,
+                  borderRadius: radius.lg,
+                  overflow: 'hidden',
+                  backgroundColor: colors.cardElevated,
+                  borderWidth: 1,
+                  borderColor: colors.accentBorder,
+                }}
+              >
+                {ad.imageUrl ? (
+                  <Image source={{ uri: ad.imageUrl }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} resizeMode="cover" />
+                ) : null}
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5, 5, 5, 0.75)' }} />
+                <View style={{ flex: 1, padding: spacing.md, justifyContent: 'space-between' }}>
+                  <View style={{ alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, backgroundColor: badgeColor }}>
+                    <Text style={{ fontFamily: typography.bodySemibold, fontSize: 10, color: colors.background, letterSpacing: 0.5 }}>
+                      {ad.badgeText || badge}
+                    </Text>
+                  </View>
+
+                  <View style={{ flex: 1, justifyContent: 'flex-end', paddingRight: ad.ctaText ? 95 : 0 }}>
+                    <Text style={{ fontFamily: typography.headingBold, fontSize: 16, color: colors.foreground, marginBottom: 4 }} numberOfLines={2}>
+                      {ad.title}
+                    </Text>
+                    <Text style={{ fontFamily: typography.body, fontSize: 12, color: colors.mutedForeground, lineHeight: 16 }} numberOfLines={2}>
+                      {ad.description}
+                    </Text>
+                  </View>
+
+                  {ad.ctaText ? (
+                    <Pressable
+                      onPress={() => handleCTAPress(ad)}
+                      style={({ pressed }) => ({
+                        position: 'absolute',
+                        bottom: spacing.md,
+                        right: spacing.md,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        backgroundColor: colors.accent,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 8,
+                        opacity: pressed ? 0.85 : 1,
+                      })}
+                    >
+                      <Text style={{ fontFamily: typography.bodySemibold, fontSize: 12, color: colors.background }}>{ad.ctaText}</Text>
+                      {ad.ctaTargetType === 'external_url' ? (
+                        <ExternalLink size={12} color={colors.background} />
+                      ) : (
+                        <ChevronRight size={12} color={colors.background} />
+                      )}
+                    </Pressable>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+          );
+        })}
       </ScrollView>
 
-      {/* Pagination dots */}
       {activeAds.length > 1 ? (
-        <View style={styles.pagination}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: spacing.sm, gap: 6 }}>
           {activeAds.map((_, index) => (
             <View
               key={index}
-              style={[
-                styles.dot,
-                index === activeIndex && styles.activeDot,
-              ]}
+              style={{
+                width: index === activeIndex ? 20 : 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: index === activeIndex ? colors.accent : colors.muted,
+              }}
             />
           ))}
         </View>
@@ -226,102 +196,3 @@ export default function AdvertisementCarousel({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.lg,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-  },
-  cardContainer: {
-    flex: 1,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.cardElevated,
-    borderWidth: 1,
-    borderColor: colors.accentBorder,
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  gradientOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(5, 5, 5, 0.75)',
-  },
-  contentContainer: {
-    flex: 1,
-    padding: spacing.md,
-    justifyContent: 'space-between',
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontFamily: typography.bodySemibold,
-    fontSize: 10,
-    color: colors.background,
-    letterSpacing: 0.5,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  title: {
-    fontFamily: typography.headingBold,
-    fontSize: 16,
-    color: colors.foreground,
-    marginBottom: 4,
-  },
-  description: {
-    fontFamily: typography.body,
-    fontSize: 12,
-    color: colors.mutedForeground,
-    lineHeight: 16,
-  },
-  ctaButton: {
-    position: 'absolute',
-    bottom: spacing.md,
-    right: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  ctaText: {
-    fontFamily: typography.bodySemibold,
-    fontSize: 12,
-    color: colors.background,
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.muted,
-  },
-  activeDot: {
-    width: 20,
-    backgroundColor: colors.accent,
-  },
-});
