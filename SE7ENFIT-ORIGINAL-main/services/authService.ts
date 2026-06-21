@@ -73,6 +73,29 @@ async function getWithFallback<T>(paths: string[]): Promise<T> {
   throw lastError;
 }
 
+function normalizeRole(role: unknown): UserRole | undefined {
+  if (typeof role !== 'string') return undefined;
+  const normalized = role.toLowerCase();
+  if (normalized === 'user') return 'user';
+  if (normalized === 'owner' || normalized === 'gym_owner' || normalized === 'gym-owner') return 'gym_owner';
+  return undefined;
+}
+
+function normalizeUser(user?: AuthUser): AuthUser | undefined {
+  if (!user) return undefined;
+  const role = normalizeRole(user.role);
+  return role ? { ...user, role } : user;
+}
+
+function fallbackNameFromEmail(email: string): string {
+  const local = email.split('@')[0] || 'SE7EN FIT User';
+  return local
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase()) || 'SE7EN FIT User';
+}
+
 function normalizeSession(raw: RawAuthSession): AuthSession {
   const source = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
   const token = source?.access_token || source?.token || source?.accessToken || source?.jwt;
@@ -81,7 +104,7 @@ function normalizeSession(raw: RawAuthSession): AuthSession {
   }
   return {
     access_token: token,
-    user: source.user,
+    user: normalizeUser(source.user),
   };
 }
 
@@ -92,7 +115,13 @@ export const authService = {
   },
 
   async register(payload: RegisterPayload): Promise<AuthSession | { requires_otp: true } | void> {
-    const raw = await postWithFallback<RawAuthSession | { requires_otp: true } | void>(['/api/auth/register', '/auth/register'], payload, false);
+    const email = payload.email.trim();
+    const body: RegisterPayload = {
+      ...payload,
+      email,
+      name: typeof payload.name === 'string' && payload.name.trim() ? payload.name.trim() : fallbackNameFromEmail(email),
+    };
+    const raw = await postWithFallback<RawAuthSession | { requires_otp: true } | void>(['/api/auth/register', '/auth/register'], body, false);
     if (raw && typeof raw === 'object' && 'requires_otp' in raw) return raw;
     if (raw && typeof raw === 'object') return normalizeSession(raw as RawAuthSession);
     return raw;
@@ -109,9 +138,9 @@ export const authService = {
 
   async me(): Promise<AuthUser> {
     const raw = await getWithFallback<AuthUser | { user: AuthUser } | { data: { user: AuthUser } }>(['/api/auth/me', '/auth/me']);
-    if ('user' in raw && raw.user) return raw.user;
-    if ('data' in raw && raw.data?.user) return raw.data.user;
-    return raw as AuthUser;
+    if ('user' in raw && raw.user) return normalizeUser(raw.user) ?? raw.user;
+    if ('data' in raw && raw.data?.user) return normalizeUser(raw.data.user) ?? raw.data.user;
+    return normalizeUser(raw as AuthUser) ?? (raw as AuthUser);
   },
 
   async logout(): Promise<void> {
