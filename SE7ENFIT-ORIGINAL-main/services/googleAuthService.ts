@@ -1,6 +1,8 @@
 // Google OAuth Service - SE7EN FIT
 // Android APK uses native Google Sign-In to avoid OAuth custom-scheme 400 errors.
 
+declare const require: <T = unknown>(moduleName: string) => T;
+
 import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { authService, type AuthSession, type UserRole } from './authService';
@@ -58,7 +60,7 @@ export function useGoogleAuthRequest() {
     }
 
     try {
-      const nativeGoogle = require('@react-native-google-signin/google-signin') as NativeGoogleModule;
+      const nativeGoogle = require<NativeGoogleModule>('@react-native-google-signin/google-signin');
       nativeGoogle.GoogleSignin.configure({
         webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
         offlineAccess: false,
