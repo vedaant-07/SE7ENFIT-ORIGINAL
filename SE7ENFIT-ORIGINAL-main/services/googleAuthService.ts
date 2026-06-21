@@ -2,7 +2,6 @@
 // Handles Google Sign-In via expo-auth-session and sends the token to the Render backend.
 
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 import { ResponseType } from 'expo-auth-session';
 import { authService, type AuthSession, type UserRole } from './authService';
 import {
@@ -22,13 +21,13 @@ const unavailablePrompt = async () => ({
 });
 
 export function useGoogleAuthRequest() {
-  // Important: screens must not crash when Google IDs are missing from a preview
-  // build. Expo's Google provider can throw during render when every client ID
-  // is empty, so return a disabled request instead of initializing OAuth.
+  // Avoid loading the Google provider when build-time IDs are missing. This keeps
+  // User Login and Gym Owner Login from crashing just by opening the screen.
   if (!isGoogleConfigured) {
     return [null, null, unavailablePrompt] as const;
   }
 
+  const Google = require('expo-auth-session/providers/google') as typeof import('expo-auth-session/providers/google');
   return Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
