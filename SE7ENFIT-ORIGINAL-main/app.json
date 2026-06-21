@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "se7enfit",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.se7enfit.app",
@@ -52,7 +52,7 @@
         "android.permission.health.WRITE_HYDRATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#050505"
       }
     },
