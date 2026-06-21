@@ -1,13 +1,13 @@
 // Base API client for the SE7EN-FIT Render backend.
 // All app code imports from this — no direct fetch() elsewhere.
 //
-// Backend: https://se7en-fit.onrender.com (existing) → TiDB/MySQL
+// Backend: https://se7enfit-original.onrender.com → TiDB/MySQL
 // Auth: bearer token stored in SecureStore, attached as Authorization header.
 
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-export const API_BASE_URL = 'https://se7en-fit.onrender.com';
+export const API_BASE_URL = 'https://se7enfit-original.onrender.com';
 
 const TOKEN_KEY = 'se7enfit_auth_token';
 const USER_KEY = 'se7enfit_user'; // cached user object (JSON)
