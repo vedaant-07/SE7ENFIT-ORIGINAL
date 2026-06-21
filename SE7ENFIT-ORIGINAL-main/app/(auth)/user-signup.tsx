@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Dumbbell, Hash, Lock, Mail, Building2 } from 'lucide-react-native';
+import { ChevronLeft, Dumbbell, Hash, Lock, Mail, Building2, User } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
@@ -15,10 +15,11 @@ import { ApiError } from '@/services/apiClient';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function UserSignup() {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, typography } = useTheme();
 
   const router = useRouter();
   const { register, verifyOtp } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -32,14 +33,24 @@ export default function UserSignup() {
 
   const handleSubmit = async () => {
     setError('');
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    if (!cleanName) {
+      setError('Please enter your full name');
+      return;
+    }
+    if (!cleanEmail) {
+      setError('Please enter your email');
+      return;
+    }
     if (password !== confirm) {
       setError('Passwords do not match');
       return;
     }
     setLoading(true);
     try {
-      await register({ email: email.trim(), password, role: 'user' });
-      setShowOtp(true);
+      await register({ name: cleanName, email: cleanEmail, password, role: 'user', gymCode: gymCode.trim() || undefined });
+      router.replace('/(user)/onboarding');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Registration failed');
     } finally {
@@ -137,6 +148,7 @@ export default function UserSignup() {
         </View>
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
         <View style={{ gap: 16 }}>
+          <Input label="Full Name" leftIcon={<User size={16} color={colors.mutedForeground} />} placeholder="Your full name" value={name} onChangeText={setName} autoCapitalize="words" />
           <Input label="Email" leftIcon={<Mail size={16} color={colors.mutedForeground} />} placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
           <Input label="Password" leftIcon={<Lock size={16} color={colors.mutedForeground} />} placeholder="••••••••" value={password} onChangeText={setPassword} secureTextEntry />
           <Input label="Confirm Password" leftIcon={<Lock size={16} color={colors.mutedForeground} />} placeholder="••••••••" value={confirm} onChangeText={setConfirm} secureTextEntry />
