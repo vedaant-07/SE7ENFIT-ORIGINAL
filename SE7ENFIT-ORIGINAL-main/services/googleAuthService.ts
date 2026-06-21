@@ -1,6 +1,8 @@
 // Google OAuth Service - SE7EN FIT
 // Handles Google Sign-In via expo-auth-session and sends the token to the Render backend.
 
+declare const require: <T = unknown>(moduleName: string) => T;
+
 import * as WebBrowser from 'expo-web-browser';
 import { ResponseType } from 'expo-auth-session';
 import { authService, type AuthSession, type UserRole } from './authService';
@@ -27,7 +29,7 @@ export function useGoogleAuthRequest() {
     return [null, null, unavailablePrompt] as const;
   }
 
-  const Google = require('expo-auth-session/providers/google') as typeof import('expo-auth-session/providers/google');
+  const Google = require<typeof import('expo-auth-session/providers/google')>('expo-auth-session/providers/google');
   return Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
