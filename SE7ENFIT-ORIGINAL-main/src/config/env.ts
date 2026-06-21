@@ -6,7 +6,7 @@ type RuntimeEnv = Record<string, string | undefined>;
 
 const runtimeEnv = (globalThis as unknown as { process?: { env?: RuntimeEnv } }).process?.env ?? {};
 
-export const API_BASE_URL = runtimeEnv.EXPO_PUBLIC_API_BASE_URL || 'https://se7en-fit.onrender.com';
+export const API_BASE_URL = runtimeEnv.EXPO_PUBLIC_API_BASE_URL || 'https://se7enfit-original.onrender.com';
 
 export const GOOGLE_WEB_CLIENT_ID = runtimeEnv.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '';
 
