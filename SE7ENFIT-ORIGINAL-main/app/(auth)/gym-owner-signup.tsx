@@ -17,15 +17,17 @@ export default function GymOwnerSignup() {
   const { colors, typography } = useTheme();
 
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, logout } = useAuth();
   const [form, setForm] = useState({ ownerName: '', email: '', mobile: '', password: '', confirm: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleRegister = async () => {
     setError('');
+    setSuccess('');
     const ownerName = form.ownerName.trim();
     const email = form.email.trim();
     const mobile = form.mobile.trim();
@@ -55,7 +57,9 @@ export default function GymOwnerSignup() {
       } catch {
         /* backend may auto-create on register */
       }
-      router.replace('/(gym-owner)/onboarding');
+      await logout().catch(() => undefined);
+      setSuccess('Gym owner account created. Please log in to continue setup.');
+      setTimeout(() => router.replace('/(auth)/gym-owner-login'), 700);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Registration failed');
     } finally {
@@ -82,6 +86,7 @@ export default function GymOwnerSignup() {
           </Text>
         </View>
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
+        {success ? <Text style={{ color: colors.accent, fontFamily: typography.bodySemibold, marginBottom: 12 }}>{success}</Text> : null}
         <View style={{ gap: 16 }}>
           <Input label="Owner Name" leftIcon={<User size={16} color={colors.mutedForeground} />} placeholder="Your full name" value={form.ownerName} onChangeText={set('ownerName')} />
           <Input label="Mobile Number" leftIcon={<Phone size={16} color={colors.mutedForeground} />} placeholder="+91 9876543210" value={form.mobile} onChangeText={set('mobile')} keyboardType="phone-pad" />
