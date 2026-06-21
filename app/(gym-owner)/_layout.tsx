@@ -50,6 +50,7 @@ export default function GymOwnerLayout() {
       <Stack.Screen name="leads" />
       <Stack.Screen name="earnings" />
       <Stack.Screen name="announcements" />
+      <Stack.Screen name="advertisements" />
       <Stack.Screen name="equipment" />
       <Stack.Screen name="owner-challenges" />
       <Stack.Screen name="owner-rewards" />

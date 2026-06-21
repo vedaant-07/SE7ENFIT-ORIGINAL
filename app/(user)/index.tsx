@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Pressable, Text, View, type TextStyle, type ViewStyle } from 'react-native';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Activity, Bot, Camera, ChevronRight, Crown, Dumbbell, Flame, Droplets, Footprints, Moon, Scale, Utensils, Trophy, TrendingUp, Zap } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
@@ -11,6 +11,13 @@ import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userServices';
 import type { UserProfile } from '@/services/userServices';
+import AdvertisementCarousel from '@/src/components/user/AdvertisementCarousel';
+import {
+  getUserDashboardAdvertisements,
+  trackAdvertisementImpression,
+  trackAdvertisementClick,
+} from '@/services/advertisementService';
+import type { Advertisement } from '@/src/types/advertisement';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -66,6 +73,12 @@ export default function Home() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [adsLoading, setAdsLoading] = useState(true);
+
+  // Track which impressions we've already sent this session
+  const trackedImpressions = useRef<Set<string>>(new Set());
+  const trackedClicks = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     (async () => {
@@ -78,6 +91,35 @@ export default function Home() {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // Fetch advertisements
+  useEffect(() => {
+    (async () => {
+      try {
+        const ads = await getUserDashboardAdvertisements();
+        setAdvertisements(ads || []);
+      } catch {
+        // Silently fail - don't show ads if API unavailable
+        setAdvertisements([]);
+      } finally {
+        setAdsLoading(false);
+      }
+    })();
+  }, []);
+
+  // Handle impression tracking (once per ad per session)
+  const handleImpression = useCallback((adId: string) => {
+    if (trackedImpressions.current.has(adId)) return;
+    trackedImpressions.current.add(adId);
+    trackAdvertisementImpression(adId);
+  }, []);
+
+  // Handle click tracking
+  const handleClick = useCallback((adId: string) => {
+    if (trackedClicks.current.has(adId)) return;
+    trackedClicks.current.add(adId);
+    trackAdvertisementClick(adId);
   }, []);
 
   if (loading) return <LoadingScreen />;
@@ -103,6 +145,15 @@ export default function Home() {
           <Scale size={18} color={colors.foreground} />
         </Pressable>
       </View>
+
+      {/* Advertisement Carousel - shows below header, above progress */}
+      {!adsLoading && advertisements.length > 0 && (
+        <AdvertisementCarousel
+          advertisements={advertisements}
+          onImpression={handleImpression}
+          onClick={handleClick}
+        />
+      )}
 
       {/* Hero card with overall progress */}
       <Card elevated style={{ marginBottom: spacing.lg }}>

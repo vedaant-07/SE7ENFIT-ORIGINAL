@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Bell, Building2, ChevronRight, ClipboardList, Dumbbell, IndianRupee,
-  LogOut, MessageSquare, Settings, Star, Ticket, Trophy, Users,
+  LogOut, MessageSquare, Megaphone, Settings, Star, Ticket, Trophy, Users,
 } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
@@ -28,6 +28,7 @@ const NAV_TILES: NavTile[] = [
   { icon: ClipboardList, label: 'Attendance', href: '/(gym-owner)/attendance', desc: 'Check-ins today' },
   { icon: Trophy, label: 'Leads', href: '/(gym-owner)/leads', desc: 'New & converted' },
   { icon: IndianRupee, label: 'Earnings', href: '/(gym-owner)/earnings', desc: 'Revenue & payouts' },
+  { icon: Megaphone, label: 'Promotions', href: '/(gym-owner)/advertisements', desc: 'Ads & offers to members' },
   { icon: Bell, label: 'Announcements', href: '/(gym-owner)/announcements', desc: 'Posts to members' },
   { icon: Dumbbell, label: 'Equipment', href: '/(gym-owner)/equipment', desc: 'Inventory & state' },
   { icon: Trophy, label: 'Challenges', href: '/(gym-owner)/owner-challenges', desc: 'Gym challenges' },
