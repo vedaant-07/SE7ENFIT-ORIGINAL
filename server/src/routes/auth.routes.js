@@ -75,8 +75,16 @@ const registerSchema = z.object({
 
 router.post("/register", async (req, res) => {
   try {
+    console.log("[REGISTER] Request received:", {
+      email: req.body.email,
+      hasPassword: !!req.body.password,
+      role: req.body.role,
+    });
+
     const data = registerSchema.parse(req.body);
     const email = data.email.toLowerCase();
+
+    console.log("[REGISTER] Validation passed, checking for existing user:", email);
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -88,12 +96,14 @@ router.post("/register", async (req, res) => {
     });
 
     if (existingUser) {
+      console.log("[REGISTER] User already exists:", email);
       return res.status(409).json({
         success: false,
         message: "Email or phone already registered",
       });
     }
 
+    console.log("[REGISTER] Creating new user...");
     const passwordHash = await bcrypt.hash(data.password, 10);
     const role = normalizeRole(data.role);
 
@@ -121,6 +131,8 @@ router.post("/register", async (req, res) => {
       },
     });
 
+    console.log("[REGISTER] User created successfully:", user.id);
+
     const token = createToken(user);
 
     return res.status(201).json({
@@ -130,10 +142,16 @@ router.post("/register", async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error("[REGISTER] Error:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
     return res.status(400).json({
       success: false,
       message: "Registration failed",
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 });
@@ -146,8 +164,16 @@ const loginSchema = z.object({
 
 router.post("/login", async (req, res) => {
   try {
+    console.log("[LOGIN] Request received:", {
+      email: req.body.email,
+      hasPassword: !!req.body.password,
+      role: req.body.role,
+    });
+
     const data = loginSchema.parse(req.body);
     const requestedRole = data.role ? normalizeRole(data.role) : null;
+
+    console.log("[LOGIN] Validation passed, finding user:", data.email);
 
     const user = await prisma.user.findUnique({
       where: {
@@ -156,13 +182,17 @@ router.post("/login", async (req, res) => {
     });
 
     if (!user) {
+      console.log("[LOGIN] User not found:", data.email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
+    console.log("[LOGIN] User found, checking password...");
+
     if (requestedRole === "OWNER" && !["OWNER", "ADMIN"].includes(user.role)) {
+      console.log("[LOGIN] Role mismatch. Expected OWNER, got:", user.role);
       return res.status(401).json({
         success: false,
         message: "Invalid owner credentials",
@@ -170,6 +200,7 @@ router.post("/login", async (req, res) => {
     }
 
     if (requestedRole === "USER" && user.role !== "USER") {
+      console.log("[LOGIN] Role mismatch. Expected USER, got:", user.role);
       return res.status(401).json({
         success: false,
         message: "Invalid user credentials",
@@ -179,6 +210,7 @@ router.post("/login", async (req, res) => {
     const passwordValid = await bcrypt.compare(data.password, user.passwordHash);
 
     if (!passwordValid) {
+      console.log("[LOGIN] Invalid password for user:", data.email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -186,12 +218,14 @@ router.post("/login", async (req, res) => {
     }
 
     if (!user.isActive) {
+      console.log("[LOGIN] Account inactive for user:", data.email);
       return res.status(403).json({
         success: false,
         message: "Account is inactive",
       });
     }
 
+    console.log("[LOGIN] Login successful for user:", user.id);
     const token = createToken(user);
 
     return res.json({
@@ -201,10 +235,16 @@ router.post("/login", async (req, res) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error("[LOGIN] Error:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
     return res.status(400).json({
       success: false,
       message: "Login failed",
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 });
@@ -244,6 +284,7 @@ router.post("/owner-login", async (req, res) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error("[OWNER-LOGIN] Error:", error.message);
     return res.status(400).json({
       success: false,
       message: "Owner login failed",
@@ -339,6 +380,7 @@ router.post("/google", async (req, res) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error("[GOOGLE] Error:", error.message);
     return res.status(400).json({
       success: false,
       message: "Google login failed",
