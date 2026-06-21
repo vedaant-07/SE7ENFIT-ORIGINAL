@@ -125,7 +125,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       if (isJson && data && typeof data === 'object' && 'message' in data) {
         message = String((data as { message: unknown }).message);
       } else if (typeof data === 'string' && data) {
-        message = data;
+        const text = data.trim();
+        const isHtml = /<!doctype html|<html|<body|<pre>/i.test(text);
+        if (isHtml && text.includes('Cannot POST')) {
+          message = 'Login service is not available on the backend yet. Please check Render API routes.';
+        } else if (isHtml) {
+          message = 'Server returned an invalid HTML response. Please check backend API route configuration.';
+        } else {
+          message = text.slice(0, 180);
+        }
       } else {
         message = `Request failed (${response.status})`;
       }

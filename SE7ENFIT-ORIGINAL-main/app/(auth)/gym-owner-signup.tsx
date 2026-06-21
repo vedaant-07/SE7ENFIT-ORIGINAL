@@ -112,7 +112,6 @@ export default function GymOwnerSignup() {
 
   return (
     <Screen scroll>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 0, right: 0, width: 256, height: 256, borderRadius: 128, backgroundColor: 'rgba(41, 224, 107, 0.05)' }} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, marginBottom: 32 }}>
         <Pressable onPress={() => router.replace('/welcome')} hitSlop={12} style={{ width: 36, height: 36, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
           <ChevronLeft size={18} color={colors.foreground} />

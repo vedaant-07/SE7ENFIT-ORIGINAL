@@ -45,22 +45,6 @@ export default function Welcome() {
 
   return (
     <Screen scroll={false} paddingHorizontal={spacing.lg} style={{ flex: 1 }}>
-      {/* Ambient green glow */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          marginLeft: -192,
-          width: 384,
-          height: 384,
-          borderRadius: 192,
-          backgroundColor: 'rgba(41, 224, 107, 0.08)',
-          opacity: 1,
-        }}
-      />
-
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: 360, alignSelf: 'center' }}>
         {/* Logo block */}
         <View style={{ alignItems: 'center', marginBottom: 40 }}>

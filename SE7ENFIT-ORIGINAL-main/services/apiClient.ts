@@ -1,8 +1,5 @@
 // Base API client for the SE7EN-FIT Render backend.
 // All app code imports from this — no direct fetch() elsewhere.
-//
-// Backend: https://se7en-fit.onrender.com (existing) → TiDB/MySQL
-// Auth: bearer token stored in SecureStore, attached as Authorization header.
 
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
@@ -11,9 +8,8 @@ import { API_BASE_URL as CONFIG_API_BASE_URL } from '@/src/config/env';
 export const API_BASE_URL = CONFIG_API_BASE_URL;
 
 const TOKEN_KEY = 'se7enfit_auth_token';
-const USER_KEY = 'se7enfit_user'; // cached user object (JSON)
+const USER_KEY = 'se7enfit_user';
 
-// On web, SecureStore is unavailable — fall back to localStorage.
 const storeToken = async (token: string) => {
   if (Platform.OS === 'web') {
     localStorage.setItem(TOKEN_KEY, token);
@@ -94,13 +90,9 @@ export class ApiError extends Error {
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
-  // When false, no Authorization header is attached (e.g. login/register).
   auth?: boolean;
-  // Query params for GET.
   query?: Record<string, string | number | boolean | undefined>;
-  // Override the default JSON content type (e.g. multipart/form-data).
   contentType?: string;
-  // Raw body string when caller has already serialized (e.g. FormData).
   rawBody?: BodyInit;
 };
 
@@ -110,6 +102,36 @@ const buildQuery = (query?: RequestOptions['query']): string => {
     .filter(([, v]) => v !== undefined && v !== null && v !== '')
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
   return params.length ? `?${params.join('&')}` : '';
+};
+
+const extractMessageFromBody = (body: unknown): string | null => {
+  if (!body) return null;
+  if (typeof body === 'string') {
+    const text = body.trim();
+    if (!text) return null;
+    const isHtml = /<!doctype html|<html|<body|<pre>/i.test(text);
+    if (isHtml) {
+      const pre = text.match(/<pre>([\s\S]*?)<\/pre>/i)?.[1]
+        ?.replace(/<[^>]+>/g, '')
+        ?.replace(/&lt;/g, '<')
+        ?.replace(/&gt;/g, '>')
+        ?.replace(/&amp;/g, '&')
+        ?.trim();
+      if (pre?.includes('Cannot POST')) {
+        return 'Login service is not available on the backend yet. Please check Render API routes.';
+      }
+      return 'Server returned an invalid HTML response. Please check backend API route configuration.';
+    }
+    return text.slice(0, 180);
+  }
+  if (typeof body === 'object') {
+    const record = body as Record<string, unknown>;
+    const candidates = [record.message, record.error, record.detail, record.description];
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+    }
+  }
+  return null;
 };
 
 export async function apiFetch<T = unknown>(
@@ -147,28 +169,24 @@ export async function apiFetch<T = unknown>(
     res = await fetch(url, init);
   } catch (e) {
     throw new ApiError(
-      'Network error. Check your connection and that the backend is reachable.',
+      'Network error. Check your internet connection and Render backend status.',
       0,
       { error: String(e) },
     );
   }
 
-  const isJson =
-    res.headers.get('content-type')?.includes('application/json') ?? false;
+  const contentTypeHeader = res.headers.get('content-type') ?? '';
+  const isJson = contentTypeHeader.includes('application/json');
   const parsed = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    const message =
-      (isJson && parsed && typeof parsed === 'object' && 'message' in parsed && String((parsed as { message: unknown }).message)) ||
-      (typeof parsed === 'string' && parsed) ||
-      `Request failed (${res.status})`;
+    const message = extractMessageFromBody(parsed) || `Request failed (${res.status})`;
     throw new ApiError(message, res.status, parsed);
   }
 
   return parsed as T;
 }
 
-// Convenience verbs.
 export const api = {
   get: <T>(path: string, query?: RequestOptions['query']) =>
     apiFetch<T>(path, { method: 'GET', query }),

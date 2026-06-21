@@ -2,55 +2,79 @@ workflows:
   android-arm64-apk-preview:
     name: Android ARM64 APK Preview
     max_build_duration: 60
-    instance_type: linux_x2
+
     environment:
+      groups:
+        - se7enfit-production
       node: 20
       java: 17
       vars:
         EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
+        EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "10666408411-4t6tm45luqqa1q8la40f8q44r5js1rik.apps.googleusercontent.com"
+        EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "106664084110iaj88pvijfgcl4it0cff6dm62326h1d.apps.googleusercontent.com"
+        EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: ""
+
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
-      - name: Generate Android project from Expo
+          npm install
+
+      - name: Install Expo and EAS CLI
         script: |
-          npx expo prebuild --platform android --clean --non-interactive
-      - name: Configure small ARM64 release APK
+          npm install -g expo-cli eas-cli
+
+      - name: Generate native Android project
         script: |
-          node scripts/configure-android-arm64-release.js
+          npx expo prebuild --platform android --clean
+
+      - name: Print Android SHA1 for Google OAuth
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew signingReport
+
       - name: Build ARM64 release APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+
     artifacts:
-      - android/app/build/outputs/apk/release/*.apk
-      - android/app/build/outputs/mapping/release/mapping.txt
+      - android/app/build/outputs/**/*.apk
 
   android-playstore-aab-production:
     name: Android Play Store AAB Production
     max_build_duration: 60
-    instance_type: linux_x2
+
     environment:
+      groups:
+        - se7enfit-production
       node: 20
       java: 17
       vars:
         EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
+        EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "10666408411-4t6tm45luqqa1q8la40f8q44r5js1rik.apps.googleusercontent.com"
+        EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "106664084110iaj88pvijfgcl4it0cff6dm62326h1d.apps.googleusercontent.com"
+        EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: ""
+
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
-      - name: Generate Android project from Expo
+          npm install
+
+      - name: Install Expo and EAS CLI
         script: |
-          npx expo prebuild --platform android --clean --non-interactive
-      - name: Configure Android release optimizations
+          npm install -g expo-cli eas-cli
+
+      - name: Generate native Android project
         script: |
-          node scripts/configure-android-arm64-release.js --aab
-      - name: Build production AAB
+          npx expo prebuild --platform android --clean
+
+      - name: Build release AAB
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:bundleRelease --no-daemon
+          ./gradlew bundleRelease
+
     artifacts:
-      - android/app/build/outputs/bundle/release/*.aab
-      - android/app/build/outputs/mapping/release/mapping.txt
+      - android/app/build/outputs/**/*.aab

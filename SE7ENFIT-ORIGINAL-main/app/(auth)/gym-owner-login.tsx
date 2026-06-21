@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Building2, ChevronLeft, Lock, Mail } from 'lucide-react-native';
@@ -7,46 +7,86 @@ import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import Logo from '@/components/se7enfit/Logo';
-
 import { useAuth } from '@/contexts/AuthContext';
 import { gymOwnerService } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
 import { useTheme } from '@/contexts/ThemeContext';
+import { isGoogleConfigured, loginWithGoogleResponse, useGoogleAuthRequest } from '@/services/googleAuthService';
 
 export default function GymOwnerLogin() {
-  const { colors, spacing, typography } = useTheme();
-
+  const { colors, typography } = useTheme();
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, setSession } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [request, response, promptAsync] = useGoogleAuthRequest();
+
+  const routeAfterOwnerAuth = async () => {
+    try {
+      const owner = await gymOwnerService.getMine();
+      router.replace(owner.onboarding_complete ? '/(gym-owner)/dashboard' : '/(gym-owner)/onboarding');
+    } catch {
+      router.replace('/(auth)/gym-owner-signup');
+    }
+  };
+
+  useEffect(() => {
+    if (response?.type !== 'success') {
+      if (response?.type === 'error') setError('Google sign-in was cancelled or failed.');
+      return;
+    }
+
+    let cancelled = false;
+    setGoogleLoading(true);
+    setError('');
+
+    (async () => {
+      try {
+        const session = await loginWithGoogleResponse(response, 'gym_owner');
+        if (cancelled) return;
+        await setSession(session.access_token, session.user);
+        await routeAfterOwnerAuth();
+      } catch (e) {
+        if (cancelled) return;
+        const msg = e instanceof ApiError || e instanceof Error ? e.message : 'Google sign-in failed.';
+        setError(msg);
+      } finally {
+        if (!cancelled) setGoogleLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [response, setSession]);
+
+  const handleGoogleSignIn = async () => {
+    if (!isGoogleConfigured) {
+      setError('Google sign-in is not configured. Add Google OAuth client IDs and rebuild the APK.');
+      return;
+    }
+    setError('');
+    await promptAsync();
+  };
 
   const handleSubmit = async () => {
     setError('');
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
-      // Decide whether this account has a gym owner profile yet.
-      try {
-        const owner = await gymOwnerService.getMine();
-        router.replace(owner.onboarding_complete ? '/(gym-owner)/dashboard' : '/(gym-owner)/onboarding');
-        return;
-      } catch {
-        // No owner profile → go to signup.
-        router.replace('/(auth)/gym-owner-signup');
-        return;
-      }
+      await login({ email: email.trim(), password, role: 'gym_owner' });
+      await routeAfterOwnerAuth();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid email or password');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <Screen scroll>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 0, right: 0, width: 256, height: 256, borderRadius: 128, backgroundColor: 'rgba(41, 224, 107, 0.05)' }} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, marginBottom: 32 }}>
         <Pressable onPress={() => router.replace('/welcome')} hitSlop={12} style={{ width: 36, height: 36, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
           <ChevronLeft size={18} color={colors.foreground} />
@@ -64,6 +104,11 @@ export default function GymOwnerLogin() {
             Access your gym dashboard
           </Text>
         </View>
+
+        <Button variant="outline" label={googleLoading ? 'Signing in with Google…' : 'Continue with Google'} onPress={handleGoogleSignIn} loading={googleLoading} disabled={!request || googleLoading} />
+        <Text style={{ textAlign: 'center', fontSize: 11, color: colors.mutedForeground, marginVertical: 24, textTransform: 'uppercase' }}>
+          or
+        </Text>
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 

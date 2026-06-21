@@ -1,16 +1,14 @@
-// Auth service — talks to your Render backend (https://se7en-fit.onrender.com).
-// Routes: login, register, verifyOtp, resendOtp, me, logout.
-//
-// Adjust paths here if your backend uses different ones — the rest of the
-// app only imports from this service, so this is the single source of truth.
+// Auth service — talks to your Render backend.
+// Production route preference: /api/auth/* with /auth/* fallback for older backend builds.
 
-import { api, apiFetch } from './apiClient';
+import { api, ApiError } from './apiClient';
+
+export type UserRole = 'user' | 'gym_owner';
 
 export type AuthUser = {
   id: string;
   email: string;
-  role?: 'user' | 'gym_owner';
-  // The backend may attach additional fields (name, etc.).
+  role?: UserRole;
   [key: string]: unknown;
 };
 
@@ -19,18 +17,26 @@ export type AuthSession = {
   user?: AuthUser;
 };
 
+type RawAuthSession = AuthSession & {
+  token?: string;
+  accessToken?: string;
+  jwt?: string;
+  data?: RawAuthSession;
+};
+
 export type LoginPayload = {
   email: string;
   password: string;
+  role?: UserRole;
 };
 
 export type RegisterPayload = {
   email: string;
   password: string;
-  // Optional fields sent in some flows.
   name?: string;
   mobile?: string;
-  role?: 'user' | 'gym_owner';
+  role?: UserRole;
+  [key: string]: unknown;
 };
 
 export type VerifyOtpPayload = {
@@ -38,40 +44,92 @@ export type VerifyOtpPayload = {
   otpCode: string;
 };
 
+const shouldFallback = (error: unknown) =>
+  error instanceof ApiError && (error.status === 404 || error.status === 405);
+
+async function postWithFallback<T>(paths: string[], body?: unknown, auth = false): Promise<T> {
+  let lastError: unknown;
+  for (const path of paths) {
+    try {
+      return await api.post<T>(path, body, auth);
+    } catch (error) {
+      lastError = error;
+      if (!shouldFallback(error)) break;
+    }
+  }
+  throw lastError;
+}
+
+async function getWithFallback<T>(paths: string[]): Promise<T> {
+  let lastError: unknown;
+  for (const path of paths) {
+    try {
+      return await api.get<T>(path);
+    } catch (error) {
+      lastError = error;
+      if (!shouldFallback(error)) break;
+    }
+  }
+  throw lastError;
+}
+
+function normalizeSession(raw: RawAuthSession): AuthSession {
+  const source = raw?.data && typeof raw.data === 'object' ? raw.data : raw;
+  const token = source?.access_token || source?.token || source?.accessToken || source?.jwt;
+  if (!token || typeof token !== 'string') {
+    throw new ApiError('No access token returned from server.', 500, raw);
+  }
+  return {
+    access_token: token,
+    user: source.user,
+  };
+}
+
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthSession> {
-    // Replace with the exact backend route for email/password login.
-    return api.post<AuthSession>('/auth/login', payload, false);
+    const raw = await postWithFallback<RawAuthSession>(['/api/auth/login', '/auth/login'], payload, false);
+    return normalizeSession(raw);
   },
 
   async register(payload: RegisterPayload): Promise<AuthSession | { requires_otp: true } | void> {
-    // Web registers then triggers OTP. Backend should accept this shape.
-    return api.post<AuthSession | { requires_otp: true }>('/auth/register', payload, false);
+    const raw = await postWithFallback<RawAuthSession | { requires_otp: true } | void>(['/api/auth/register', '/auth/register'], payload, false);
+    if (raw && typeof raw === 'object' && 'requires_otp' in raw) return raw;
+    if (raw && typeof raw === 'object') return normalizeSession(raw as RawAuthSession);
+    return raw;
   },
 
   async verifyOtp(payload: VerifyOtpPayload): Promise<AuthSession> {
-    return api.post<AuthSession>('/auth/verify-otp', payload, false);
+    const raw = await postWithFallback<RawAuthSession>(['/api/auth/verify-otp', '/auth/verify-otp'], payload, false);
+    return normalizeSession(raw);
   },
 
   async resendOtp(email: string): Promise<void> {
-    return api.post('/auth/resend-otp', { email }, false);
+    await postWithFallback(['/api/auth/resend-otp', '/auth/resend-otp'], { email }, false);
   },
 
   async me(): Promise<AuthUser> {
-    return api.get<AuthUser>('/auth/me');
+    const raw = await getWithFallback<AuthUser | { user: AuthUser } | { data: { user: AuthUser } }>(['/api/auth/me', '/auth/me']);
+    if ('user' in raw && raw.user) return raw.user;
+    if ('data' in raw && raw.data?.user) return raw.data.user;
+    return raw as AuthUser;
   },
 
   async logout(): Promise<void> {
-    // Best-effort — clear local token even if backend call fails.
     try {
-      await api.post('/auth/logout', {});
+      await postWithFallback(['/api/auth/logout', '/auth/logout'], {}, true);
     } catch {
-      /* ignored */
+      // Best-effort only — local token is cleared by AuthContext.
     }
   },
 
-  // Google OAuth — left as a placeholder. Wire to your provider flow when ready.
-  async loginWithGoogle(): Promise<never> {
-    throw new Error('Google sign-in is not yet wired to the Render backend.');
+  async loginWithGoogle(params: { idToken?: string; accessToken?: string; role: UserRole }): Promise<AuthSession> {
+    const raw = await postWithFallback<RawAuthSession>(['/api/auth/google', '/auth/google'], {
+      provider: 'google',
+      role: params.role,
+      idToken: params.idToken,
+      accessToken: params.accessToken,
+      token: params.idToken || params.accessToken,
+    }, false);
+    return normalizeSession(raw);
   },
 };
