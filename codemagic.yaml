@@ -1,0 +1,64 @@
+workflows:
+  android-arm64-apk-preview:
+    name: Android ARM64 APK Preview
+    max_build_duration: 60
+
+    environment:
+      node: 20
+      java: 17
+      vars:
+        EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+
+      - name: Install Expo and EAS CLI
+        script: |
+          npm install -g expo-cli eas-cli
+
+      - name: Generate native Android project
+        script: |
+          npx expo prebuild --platform android --clean
+
+      - name: Build ARM64 release APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+
+  android-playstore-aab-production:
+    name: Android Play Store AAB Production
+    max_build_duration: 60
+
+    environment:
+      node: 20
+      java: 17
+      vars:
+        EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+
+      - name: Install Expo and EAS CLI
+        script: |
+          npm install -g expo-cli eas-cli
+
+      - name: Generate native Android project
+        script: |
+          npx expo prebuild --platform android --clean
+
+      - name: Build release AAB
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+    artifacts:
+      - android/app/build/outputs/**/*.aab
