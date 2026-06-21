@@ -2,7 +2,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { colors, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import Logo from './Logo';
 
 export default function TopBar({
@@ -18,10 +18,13 @@ export default function TopBar({
   onBack?: () => void;
   right?: React.ReactNode;
 }) {
+  const { colors, spacing, typography } = useTheme();
+
   const handleBack = () => {
     if (onBack) return onBack();
     if (router.canGoBack()) router.back();
   };
+
   return (
     <View
       style={{

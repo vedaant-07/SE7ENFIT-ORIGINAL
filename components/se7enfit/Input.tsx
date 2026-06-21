@@ -3,7 +3,7 @@
 import { forwardRef, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { TextInput, type TextInputProps } from 'react-native';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = {
   label?: string;
@@ -16,7 +16,9 @@ const Input = forwardRef<TextInput, Props>(function Input(
   { label, leftIcon, errorText, hint, style, ...props },
   ref,
 ) {
+  const { colors, radius, spacing, typography } = useTheme();
   const hasError = Boolean(errorText);
+
   return (
     <View style={{ gap: spacing.xs }}>
       {label && (

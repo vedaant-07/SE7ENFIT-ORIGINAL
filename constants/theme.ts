@@ -1,7 +1,10 @@
-// SE7EN FIT brand theme — mirrors web app CSS variables.
-// Pure black background, neon green accent, Inter body + Space Grotesk headings.
+// SE7EN FIT brand theme — Dark and Light modes.
+// Pure black/white backgrounds, neon green accent, Inter body + Space Grotesk headings.
 
-export const colors = {
+export type ThemeMode = 'dark' | 'light';
+
+// Dark theme colors (default)
+export const darkColors = {
   background: '#050505',
   foreground: '#FAFAFA',
   card: '#0D0D0D',
@@ -24,17 +27,52 @@ export const colors = {
   border: '#292929',
   input: '#292929',
   ring: '#29E06B',
-  // Chart palette from web
   chart1: '#29E06B',
   chart2: '#2DBA7A',
   chart3: '#E08A33',
   chart4: '#9D5CD6',
   chart5: '#E8527A',
-  // Status shades
   success: '#29E06B',
   warning: '#F5A623',
   error: '#EF4444',
 } as const;
+
+// Light theme colors
+export const lightColors = {
+  background: '#FFFFFF',
+  foreground: '#0F0F0F',
+  card: '#F5F5F5',
+  cardElevated: '#FFFFFF',
+  popover: '#FFFFFF',
+  primary: '#0F0F0F',
+  primaryForeground: '#FFFFFF',
+  secondary: '#E5E5E5',
+  secondaryForeground: '#0F0F0F',
+  muted: '#E5E5E5',
+  mutedForeground: '#737373',
+  accent: '#29E06B',
+  accentForeground: '#000000',
+  accentDim: 'rgba(41, 224, 107, 0.10)',
+  accentBorder: 'rgba(41, 224, 107, 0.30)',
+  accentSoft: 'rgba(41, 224, 107, 0.15)',
+  destructive: '#FEE2E2',
+  destructiveForeground: '#0F0F0F',
+  destructiveSoft: 'rgba(239, 68, 68, 0.10)',
+  border: '#E5E5E5',
+  input: '#E5E5E5',
+  ring: '#29E06B',
+  chart1: '#29E06B',
+  chart2: '#2DBA7A',
+  chart3: '#E08A33',
+  chart4: '#9D5CD6',
+  chart5: '#E8527A',
+  success: '#29E06B',
+  warning: '#F5A623',
+  error: '#EF4444',
+} as const;
+
+// For backward compatibility, export dark colors as default
+export const colors = darkColors;
 
 export const spacing = {
   xs: 4,
@@ -54,7 +92,6 @@ export const radius = {
 } as const;
 
 export const typography = {
-  // Remapped family names loaded in _layout via useFonts.
   body: 'Inter-Regular',
   bodyMedium: 'Inter-Medium',
   bodySemibold: 'Inter-SemiBold',

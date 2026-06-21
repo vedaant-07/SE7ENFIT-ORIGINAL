@@ -1,12 +1,15 @@
 // Inline error banner used across auth screens — mirrors web's destructive box.
 import { type ReactNode } from 'react';
 import { Text, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = { children: ReactNode };
 
 export default function ErrorBanner({ children }: Props) {
+  const { colors, radius, spacing, typography } = useTheme();
+
   if (!children) return null;
+
   return (
     <View
       style={{

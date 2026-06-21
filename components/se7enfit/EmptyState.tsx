@@ -1,7 +1,7 @@
 // Empty state — shown when a list has no items yet.
 import { type ReactNode } from 'react';
 import { Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function EmptyState({
   icon,
@@ -12,6 +12,8 @@ export default function EmptyState({
   title: string;
   subtitle?: string;
 }) {
+  const { colors, spacing, typography } = useTheme();
+
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl * 1.5 }}>
       {icon ? <View style={{ marginBottom: spacing.md, opacity: 0.5 }}>{icon}</View> : null}

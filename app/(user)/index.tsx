@@ -7,7 +7,7 @@ import Card from '@/components/se7enfit/Card';
 import ProgressRing from '@/components/se7enfit/ProgressRing';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import Logo from '@/components/se7enfit/Logo';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userServices';
 import type { UserProfile } from '@/services/userServices';
@@ -37,14 +37,38 @@ type TodayStat = {
 
 const TODAY: TodayStat[] = [
   { icon: Flame, label: 'Calories', value: 1240, goal: 2200, unit: 'kcal', color: '#F5A623' },
-  { icon: Utensils, label: 'Protein', value: 92, goal: 140, unit: 'g', color: colors.accent },
+  { icon: Utensils, label: 'Protein', value: 92, goal: 140, unit: 'g', color: '#29E06B' },
   { icon: Droplets, label: 'Water', value: 1.2, goal: 3.0, unit: 'L', color: '#38BDF8' },
   { icon: Footprints, label: 'Steps', value: 5430, goal: 10000, unit: '', color: '#A78BFA' },
   { icon: Moon, label: 'Sleep', value: 6.5, goal: 8, unit: 'h', color: '#F472B6' },
 ];
 
-function StatPill({ icon: Icon, label, value, unit, progress }: { icon: typeof Flame; label: string; value: number; unit: string; progress: number }) {
-  return (
+type QuickAction = { icon: typeof Bot; label: string; href: string; color: string };
+
+const QUICK_ACTIONS: QuickAction[] = [
+  { icon: Bot, label: 'AI Trainer', href: '/(user)/ai-trainer', color: '#29E06B' },
+  { icon: Dumbbell, label: 'Workout', href: '/(user)/workout', color: '#F5A623' },
+  { icon: Utensils, label: 'Nutrition', href: '/(user)/nutrition', color: '#38BDF8' },
+  { icon: Camera, label: 'Food Scan', href: '/(user)/food-scan', color: '#A78BFA' },
+  { icon: Activity, label: 'Tracking', href: '/(user)/tracking', color: '#F472B6' },
+  { icon: Trophy, label: 'Challenges', href: '/(user)/challenges', color: '#29E06B' },
+];
+
+export default function Home() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { colors, radius, spacing, typography } = useTheme();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [adsLoading, setAdsLoading] = useState(true);
+
+  // Track which impressions we've already sent this session
+  const trackedImpressions = useRef<Set<string>>(new Set());
+  const trackedClicks = useRef<Set<string>>(new Set());
+
+  // StatPill component using theme
+  const StatPill = ({ icon: Icon, label, value, unit, progress }: { icon: typeof Flame; label: string; value: number; unit: string; progress: number }) => (
     <View style={{ alignItems: 'center', gap: 6 }}>
       <ProgressRing size={64} strokeWidth={5} progress={progress} value={`${value}`} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -55,30 +79,6 @@ function StatPill({ icon: Icon, label, value, unit, progress }: { icon: typeof F
       </View>
     </View>
   );
-}
-
-type QuickAction = { icon: typeof Bot; label: string; href: string; color: string };
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { icon: Bot, label: 'AI Trainer', href: '/(user)/ai-trainer', color: colors.accent },
-  { icon: Dumbbell, label: 'Workout', href: '/(user)/workout', color: '#F5A623' },
-  { icon: Utensils, label: 'Nutrition', href: '/(user)/nutrition', color: '#38BDF8' },
-  { icon: Camera, label: 'Food Scan', href: '/(user)/food-scan', color: '#A78BFA' },
-  { icon: Activity, label: 'Tracking', href: '/(user)/tracking', color: '#F472B6' },
-  { icon: Trophy, label: 'Challenges', href: '/(user)/challenges', color: colors.accent },
-];
-
-export default function Home() {
-  const router = useRouter();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
-  const [adsLoading, setAdsLoading] = useState(true);
-
-  // Track which impressions we've already sent this session
-  const trackedImpressions = useRef<Set<string>>(new Set());
-  const trackedClicks = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     (async () => {

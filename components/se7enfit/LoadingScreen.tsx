@@ -1,10 +1,12 @@
 // SE7EN-FIT loading screen — black bg with centered logo + green spinner.
 // Mirrors the web app's `AuthenticatedApp` loading state.
 import { ActivityIndicator, View, Text } from 'react-native';
-import { colors, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import Logo from './Logo';
 
 export default function LoadingScreen() {
+  const { colors, spacing, typography } = useTheme();
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ alignItems: 'center' }}>

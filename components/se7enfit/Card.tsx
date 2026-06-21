@@ -1,7 +1,7 @@
 // SE7EN-FIT card — dark elevated surface with 1px border and rounded corners.
 import { type ReactNode } from 'react';
 import { View, type ViewStyle } from 'react-native';
-import { colors, radius, spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = {
   children: ReactNode;
@@ -12,6 +12,8 @@ type Props = {
 };
 
 export default function Card({ children, style, padded = true, elevated = false }: Props) {
+  const { colors, radius, spacing } = useTheme();
+
   return (
     <View
       style={{

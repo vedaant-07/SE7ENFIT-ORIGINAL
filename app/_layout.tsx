@@ -22,9 +22,26 @@ import {
 
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { colors } from '@/constants/theme';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
+
+function ThemedRoot() {
+  const { colors, isDark } = useTheme();
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background);
+  }, [colors.background]);
+
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </>
+  );
+}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -42,10 +59,6 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(colors.background);
-  }, []);
-
-  useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
@@ -57,12 +70,11 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="light" />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ThemedRoot />
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

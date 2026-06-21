@@ -2,7 +2,7 @@
 import { type ReactNode } from 'react';
 import { ScrollView, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = {
   children: ReactNode;
@@ -19,11 +19,14 @@ export default function Screen({
   children,
   scroll = true,
   withBottomNavPadding = false,
-  paddingHorizontal = spacing.lg,
+  paddingHorizontal,
   style,
   contentContainerStyle,
 }: Props) {
+  const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const defaultPadding = spacing.lg;
+
   return (
     <View
       style={{
@@ -38,7 +41,7 @@ export default function Screen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal,
+            paddingHorizontal: paddingHorizontal ?? defaultPadding,
             paddingTop: spacing.lg,
             paddingBottom: (withBottomNavPadding ? 96 : spacing.xxl) + insets.bottom,
             ...contentContainerStyle,
@@ -47,7 +50,7 @@ export default function Screen({
           {children}
         </ScrollView>
       ) : (
-        <View style={{ flex: 1, paddingHorizontal, paddingBottom: withBottomNavPadding ? 96 + insets.bottom : 0 }}>
+        <View style={{ flex: 1, paddingHorizontal: paddingHorizontal ?? defaultPadding, paddingBottom: withBottomNavPadding ? 96 + insets.bottom : 0 }}>
           {children}
         </View>
       )}
