@@ -53,6 +53,25 @@ model User {
   dailyHealthSummaries DailyHealthSummary[]
   workoutSessions WorkoutSession[]
   pushTokens PushToken[]
+
+  gymProfiles GymProfile[]
+  gymMembers GymMember[]
+  gymPayments GymPayment[]
+  gymLeads GymLead[]
+  gymAttendance GymAttendanceRecord[]
+  gymCampaigns GymCampaign[]
+  gymEquipment GymEquipment[]
+  gymReviews GymReview[]
+  gymReferrals GymReferral[]
+  gymWorkoutPlans GymWorkoutPlan[]
+  gymDietPlans GymDietPlan[]
+  gymAssignedWorkouts GymAssignedWorkoutPlan[]
+  gymAssignedDiets GymAssignedDietPlan[]
+  gymWhatsAppMessages GymWhatsAppMessage[]
+  gymEmailMessages GymEmailMessage[]
+  gymStaff GymStaff[]
+  gymClasses GymClass[]
+  gymPlans GymMembershipPlan[]
 }
 
 model Subscription {
@@ -164,6 +183,7 @@ model Reward {
   isActive    Boolean @default(true)
   createdAt   DateTime @default(now())
 }
+
 model HealthSyncRecord {
   id              String   @id @default(cuid())
   userId          String
@@ -252,4 +272,309 @@ model PushToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model GymProfile {
+  id                   String   @id @default(cuid())
+  ownerId              String
+  gym_name             String?
+  owner_name           String?
+  email                String?
+  mobile               String?
+  address              String?  @db.Text
+  city                 String?
+  state                String?
+  pincode              String?
+  description          String?  @db.Text
+  logo_url             String?
+  image_url            String?
+  amenities            Json?
+  opening_hours        Json?
+  onboarding_completed Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId])
+  @@index([ownerId])
+}
+
+model GymMember {
+  id             String   @id @default(cuid())
+  ownerId        String
+  name           String
+  email          String?
+  phone          String?
+  status         String   @default("active")
+  plan_name      String?
+  join_date      DateTime?
+  renewal_date   DateTime?
+  amount         Float?
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  attendance GymAttendanceRecord[]
+  payments GymPayment[]
+
+  @@index([ownerId])
+}
+
+model GymPayment {
+  id          String   @id @default(cuid())
+  ownerId     String
+  memberId    String?
+  amount      Float    @default(0)
+  status      String   @default("paid")
+  method      String?
+  description String?
+  paid_at     DateTime?
+  due_date    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  member GymMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([memberId])
+}
+
+model GymLead {
+  id             String   @id @default(cuid())
+  ownerId        String
+  name           String
+  phone          String?
+  email          String?
+  source         String?
+  status         String   @default("new")
+  follow_up_date DateTime?
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymAttendanceRecord {
+  id        String   @id @default(cuid())
+  ownerId   String
+  memberId  String?
+  date      DateTime @default(now())
+  check_in  DateTime?
+  check_out DateTime?
+  status    String   @default("present")
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  member GymMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([memberId])
+}
+
+model GymCampaign {
+  id          String   @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?  @db.Text
+  status      String   @default("active")
+  start_date  DateTime?
+  end_date    DateTime?
+  cta_text    String?
+  cta_url     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymEquipment {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  category    String?
+  status      String   @default("working")
+  notes       String?  @db.Text
+  purchased_at DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymReview {
+  id        String   @id @default(cuid())
+  ownerId   String
+  memberId  String?
+  name      String?
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  reply     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymReferral {
+  id        String   @id @default(cuid())
+  ownerId   String
+  code      String?
+  name      String?
+  phone     String?
+  status    String   @default("new")
+  reward    Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymWorkoutPlan {
+  id          String   @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?  @db.Text
+  difficulty  String?
+  status      String   @default("active")
+  data        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymDietPlan {
+  id          String   @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?  @db.Text
+  status      String   @default("active")
+  data        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymAssignedWorkoutPlan {
+  id        String   @id @default(cuid())
+  ownerId   String
+  memberId  String?
+  title     String?
+  status    String   @default("active")
+  data      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymAssignedDietPlan {
+  id        String   @id @default(cuid())
+  ownerId   String
+  memberId  String?
+  title     String?
+  status    String   @default("active")
+  data      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymWhatsAppMessage {
+  id        String   @id @default(cuid())
+  ownerId   String
+  to        String?
+  message   String?  @db.Text
+  status    String   @default("queued")
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymEmailMessage {
+  id        String   @id @default(cuid())
+  ownerId   String
+  to        String?
+  subject   String?
+  message   String?  @db.Text
+  status    String   @default("queued")
+  createdAt DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymStaff {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  phone     String?
+  email     String?
+  role      String?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymClass {
+  id        String   @id @default(cuid())
+  ownerId   String
+  title     String
+  trainer   String?
+  schedule  String?
+  capacity  Int?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model GymMembershipPlan {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  amount      Float    @default(0)
+  durationDays Int?
+  description String?  @db.Text
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
 }
