@@ -6,6 +6,7 @@ const authRoutes = require("./routes/auth.routes");
 const healthRoutes = require("./routes/health.routes");
 const trackingRoutes = require("./routes/tracking.routes");
 const notificationRoutes = require("./routes/notifications.routes");
+const gymOwnerRoutes = require("./routes/gym-owner.routes");
 
 dotenv.config();
 
@@ -33,9 +34,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/tracking", trackingRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/gym-owner", gymOwnerRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`SE7EN FIT API running on port ${PORT}`);
+  console.log("SE7EN FIT API running on port " + PORT);
 });
