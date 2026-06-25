@@ -56,6 +56,17 @@ if (!aabMode && !gradle.includes('include "arm64-v8a"')) {
   );
 }
 
+// Ensure minifyEnabled is true for release builds to use shrinkResources
+gradle = gradle.replace(
+  /(release\s*\{[^}]*)/s,
+  (match) => {
+    if (!match.includes('minifyEnabled')) {
+      return match.replace(/release\s*\{/, 'release {\n            minifyEnabled true\n');
+    }
+    return match;
+  }
+);
+
 fs.writeFileSync(appBuildGradlePath, gradle);
 
 console.log(`[SE7EN FIT build config] Android release optimization applied. Mode: ${aabMode ? 'AAB production' : 'ARM64 APK preview'}`);
