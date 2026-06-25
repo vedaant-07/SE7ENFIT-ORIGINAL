@@ -14,7 +14,9 @@
       "infoPlist": {
         "NSHealthShareUsageDescription": "SE7EN FIT uses HealthKit to read your workout, nutrition, and health data to track your progress.",
         "NSHealthUpdateUsageDescription": "SE7EN FIT uses HealthKit to save your workout and nutrition data.",
-        "NSCameraUsageDescription": "SE7EN FIT needs camera access to scan food and take profile photos."
+        "NSCameraUsageDescription": "SE7EN FIT needs camera access to scan food and take profile photos.",
+        "NSUserNotificationsUsageDescription": "SE7EN FIT sends workout, attendance, payment, progress, and gym notification reminders.",
+        "NSMotionUsageDescription": "SE7EN FIT uses motion and fitness data to improve live workout and activity tracking."
       },
       "entitlements": {
         "com.apple.developer.healthkit": true
@@ -26,7 +28,9 @@
         "android.permission.INTERNET",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACTIVITY_RECOGNITION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
@@ -61,11 +65,7 @@
     },
     "extra": {
       "primaryColor": "#D4FF00",
-      "backgroundColor": "#050505",
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
-    },
-    "owner": "se7enfit"
+      "backgroundColor": "#050505"
+    }
   }
 }
