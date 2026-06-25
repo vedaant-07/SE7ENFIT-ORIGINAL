@@ -12,19 +12,20 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { authService, type AuthUser, type LoginPayload, type RegisterPayload } from '@/services/authService';
-import { tokenStore, userStore } from '@/services/apiClient';
-import { ApiError } from '@/services/apiClient';
+import * as authApi from '@/src/api/authApi';
+import { tokenStore, userCache as userStore, ApiError } from '@/src/api/client';
 
 export type AuthErrorState = { type: string; message?: string } | null;
+
+export type AuthUser = authApi.AuthUser;
 
 type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   isLoadingAuth: boolean;
   authError: AuthErrorState;
-  login: (payload: LoginPayload) => Promise<AuthUser>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (payload: { email: string; password: string; role: 'user' | 'gym_owner' }) => Promise<AuthUser>;
+  register: (payload: unknown) => Promise<void>;
   verifyOtp: (email: string, otpCode: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   setSession: (token: string, user?: AuthUser) => Promise<void>;
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
     if (!token) return null;
     try {
-      const me = await authService.me();
+      const me = await authApi.getMe();
       setUser(me);
       await userStore.set(me);
       return me;
@@ -87,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setToken(storedToken);
       try {
-        const me = await authService.me();
+        const me = await authApi.getMe();
         setUser(me);
         await userStore.set(me);
       } catch (e) {
@@ -107,17 +108,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = useCallback(
-    async (payload: LoginPayload): Promise<AuthUser> => {
+    async (payload: { email: string; password: string; role: 'user' | 'gym_owner' }): Promise<AuthUser> => {
       setAuthError(null);
       try {
-        const session = await authService.login(payload);
+        let session;
+        if (payload.role === 'gym_owner') {
+          session = await authApi.gymOwnerLogin(payload.email, payload.password);
+        } else {
+          session = await authApi.userLogin(payload.email, payload.password);
+        }
         if (!session?.access_token) {
           throw new ApiError('No access token returned from server.', 500);
         }
         await setSession(session.access_token, session.user);
         // If backend didn't return user in login response, fetch /me.
         if (!session.user) {
-          const me = await authService.me();
+          const me = await authApi.getMe();
           setUser(me);
           await userStore.set(me);
           return me;
@@ -132,10 +138,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [setSession],
   );
 
-  const register = useCallback(async (payload: RegisterPayload): Promise<void> => {
+  const register = useCallback(async (payload: unknown): Promise<void> => {
     setAuthError(null);
     try {
-      const session = await authService.register(payload);
+      // @ts-ignore - we'll handle different payload types
+      const session = payload.role === 'gym_owner' 
+        ? await authApi.gymOwnerSignup(payload) 
+        : await authApi.userSignup(payload);
       // If backend returns tokens immediately (no OTP step), hydrate session.
       if (session && typeof session === 'object' && 'access_token' in session && session.access_token) {
         await setSession(session.access_token, (session as { user?: AuthUser }).user);
@@ -152,13 +161,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, otpCode: string): Promise<AuthUser> => {
       setAuthError(null);
       try {
-        const session = await authService.verifyOtp({ email, otpCode });
+        const session = await authApi.verifyOtp(email, otpCode);
         if (!session?.access_token) {
           throw new ApiError('No access token returned from server.', 500);
         }
         await setSession(session.access_token, session.user);
         if (!session.user) {
-          const me = await authService.me();
+          const me = await authApi.getMe();
           setUser(me);
           await userStore.set(me);
           return me;
@@ -174,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await authService.logout().catch(() => {});
+    await authApi.logout().catch(() => {});
     await tokenStore.clear();
     await userStore.clear();
     setUser(null);

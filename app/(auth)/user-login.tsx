@@ -9,18 +9,21 @@ import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import Logo from '@/components/se7enfit/Logo';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/services/apiClient';
+import { ApiError } from '@/src/api/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useGoogleLogin } from '@/src/services/googleAuthService';
 
 export default function UserLogin() {
   const { colors, spacing, typography } = useTheme();
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, setSession } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { signInWithGoogle, isLoading: googleLoading } = useGoogleLogin('user');
 
   const handleSubmit = async () => {
     setError('');
@@ -30,6 +33,19 @@ export default function UserLogin() {
       router.replace('/(user)');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid email or password');
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const session = await signInWithGoogle();
+      await setSession(session.access_token, session.user);
+      router.replace('/(user)');
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Google login failed');
       setLoading(false);
     }
   };
@@ -64,7 +80,12 @@ export default function UserLogin() {
           </Text>
         </View>
 
-        <Button variant="outline" label="Continue with Google" onPress={() => { /* TODO: wire Google OAuth on Render */ }} />
+        <Button 
+          variant="outline" 
+          label="Continue with Google" 
+          onPress={handleGoogleLogin} 
+          loading={googleLoading} 
+        />
         <Text style={{ textAlign: 'center', fontSize: 11, color: colors.mutedForeground, marginVertical: 24, textTransform: 'uppercase' }}>
           or
         </Text>
