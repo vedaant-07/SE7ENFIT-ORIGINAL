@@ -9,11 +9,14 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { announcementService, type Announcement } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Announcements() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => announcementService.list());
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState('');

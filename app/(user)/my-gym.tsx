@@ -7,12 +7,15 @@ import TopBar from '@/components/se7enfit/TopBar';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { userService, type UserProfile } from '@/services/userServices';
 import { gymOwnerService, type GymOwner } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function MyGym() {
+  const { colors, spacing, typography } = useTheme();
+
   const profileReq = useAsync(() => userService.getProfile());
   const profile = profileReq.data as UserProfile | null;
 

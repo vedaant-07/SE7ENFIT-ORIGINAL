@@ -9,9 +9,10 @@ import TopBar from '@/components/se7enfit/TopBar';
 import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { supportService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const FAQS = [
   { q: 'How do I generate an AI workout plan?', a: 'Go to Workout tab → tap "Generate Plan" and answer a few quick questions.' },
@@ -21,6 +22,8 @@ const FAQS = [
 ];
 
 export default function Support() {
+  const { colors, spacing, typography } = useTheme();
+
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);

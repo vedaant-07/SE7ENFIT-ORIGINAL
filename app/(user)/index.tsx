@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { Activity, Bot, Camera, ChevronRight, Crown, Dumbbell, Flame, Droplets, Footprints, Moon, Scale, Utensils, Trophy, TrendingUp, Zap } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
@@ -195,7 +195,7 @@ export default function Home() {
             return (
               <Pressable
                 key={qa.label}
-                onPress={() => router.push(qa.href)}
+                onPress={() => router.push(qa.href as Href)}
                 style={({ pressed }) => ({
                   width: '33.333%',
                   padding: spacing.md,

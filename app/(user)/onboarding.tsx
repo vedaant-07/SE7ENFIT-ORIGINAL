@@ -10,10 +10,11 @@ import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import TopBar from '@/components/se7enfit/TopBar';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { userService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const GOALS = ['Lose Weight', 'Build Muscle', 'Stay Fit', 'Improve Endurance', 'Gain Weight'];
 const ACTIVITY = ['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active'];
@@ -50,6 +51,8 @@ function ChipOptions<T extends string>({
 }
 
 export default function Onboarding() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const [name, setName] = useState((user as { name?: string })?.name || '');

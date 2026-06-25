@@ -8,9 +8,10 @@ import TopBar from '@/components/se7enfit/TopBar';
 import Button from '@/components/se7enfit/Button';
 import Input from '@/components/se7enfit/Input';
 import ProgressRing from '@/components/se7enfit/ProgressRing';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { trackingService } from '@/services/userServices';
 import { useAsync } from '@/hooks/useAsync';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Metric = { type: string; label: string; icon: typeof Droplets; value: number; goal: number; unit: string; color: string };
 
@@ -18,11 +19,13 @@ const METRICS: Metric[] = [
   { type: 'water', label: 'Water', icon: Droplets, value: 1.2, goal: 3.0, unit: 'L', color: '#38BDF8' },
   { type: 'steps', label: 'Steps', icon: Footprints, value: 5430, goal: 10000, unit: '', color: '#A78BFA' },
   { type: 'sleep', label: 'Sleep', icon: Moon, value: 6.5, goal: 8, unit: 'h', color: '#F472B6' },
-  { type: 'weight', label: 'Weight', icon: Scale, value: 72, goal: 70, unit: 'kg', color: colors.accent },
+  { type: 'weight', label: 'Weight', icon: Scale, value: 72, goal: 70, unit: 'kg', color: '#29E06B' },
   { type: 'mood', label: 'Mood', icon: Heart, value: 7, goal: 10, unit: '/10', color: '#F5A623' },
 ];
 
 export default function Tracking() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data } = useAsync(() => trackingService.list({ date: new Date().toISOString().slice(0, 10) }));
   const [addingType, setAddingType] = useState<string | null>(null);
   const [value, setValue] = useState('');

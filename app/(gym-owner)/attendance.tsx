@@ -9,10 +9,11 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { attendanceService, type AttendanceRecord } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function formatTime(iso: string): string {
   try {
@@ -23,6 +24,8 @@ function formatTime(iso: string): string {
 }
 
 export default function Attendance() {
+  const { colors, spacing, typography } = useTheme();
+
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const { data, loading, error, reload } = useAsync(() => attendanceService.list({ date }), [date]);
   const [memberId, setMemberId] = useState('');

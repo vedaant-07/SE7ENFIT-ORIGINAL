@@ -10,15 +10,18 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { communityService } from '@/services/userServices';
 import type { UserProfile } from '@/services/userServices';
 import { userService } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Post = { id: string; content: string; author_name?: string; created_at?: string; likes?: number; comments?: number };
 
 export default function Community() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => communityService.list());
   const [draft, setDraft] = useState('');
   const [posting, setPosting] = useState(false);

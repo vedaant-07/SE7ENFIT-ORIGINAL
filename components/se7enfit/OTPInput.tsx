@@ -2,7 +2,7 @@
 // Uses a hidden TextInput to capture typed input.
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { colors, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = {
   length?: number;
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function OTPInput({ length = 6, value, onChange, autoFocus = true }: Props) {
+  const { colors, typography } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
 
@@ -27,24 +28,34 @@ export default function OTPInput({ length = 6, value, onChange, autoFocus = true
   return (
     <Pressable onPress={() => inputRef.current?.focus()} style={styles.wrap}>
       <View style={styles.row}>
-        {digits.map((d, i) => (
-          <View
-            key={i}
-            style={[
-              styles.cell,
-              (focused && i === value.length) || (value.length === length && i === length - 1 && focused)
-                ? styles.cellFocused
-                : null,
-            ]}
-          >
-            <TextInput
-              pointerEvents="none"
-              editable={false}
-              value={d}
-              style={styles.cellText}
-            />
-          </View>
-        ))}
+        {digits.map((d, i) => {
+          const isFocused = (focused && i === value.length) || (value.length === length && i === length - 1 && focused);
+          return (
+            <View
+              key={i}
+              style={[
+                styles.cell,
+                {
+                  borderColor: isFocused ? colors.accent : colors.border,
+                  backgroundColor: isFocused ? colors.accentSoft : colors.card,
+                },
+              ]}
+            >
+              <TextInput
+                pointerEvents="none"
+                editable={false}
+                value={d}
+                style={[
+                  styles.cellText,
+                  {
+                    color: colors.foreground,
+                    fontFamily: typography.headingBold,
+                  },
+                ]}
+              />
+            </View>
+          );
+        })}
       </View>
       <TextInput
         ref={inputRef}
@@ -69,15 +80,10 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cellFocused: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   cellText: {
-    color: colors.foreground,
-    fontFamily: typography.headingBold,
     fontSize: 22,
     includeFontPadding: false,
   },

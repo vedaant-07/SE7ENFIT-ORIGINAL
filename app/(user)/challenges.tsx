@@ -9,11 +9,14 @@ import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import ProgressRing from '@/components/se7enfit/ProgressRing';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { challengeService, type Challenge } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Challenges() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => challengeService.list());
   const [joining, setJoining] = useState<string | null>(null);
 

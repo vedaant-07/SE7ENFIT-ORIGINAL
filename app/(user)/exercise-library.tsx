@@ -8,13 +8,16 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { exerciseService, type Exercise } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio'];
 
 export default function ExerciseLibrary() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
   const { data, loading, error } = useAsync(() =>

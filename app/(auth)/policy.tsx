@@ -5,7 +5,8 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import Screen from '@/components/se7enfit/Screen';
 import Logo from '@/components/se7enfit/Logo';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+
 
 type Tab = 'terms' | 'privacy';
 
@@ -26,6 +27,8 @@ const PRIVACY = [
 ];
 
 export default function Policy() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('terms');
 

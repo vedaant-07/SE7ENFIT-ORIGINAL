@@ -1,5 +1,5 @@
 // Theme Context - SE7EN FIT
-// Provides dark/light theme switching across the app.
+// Provides persisted dark/light theme switching across user and gym-owner app areas.
 
 import {
   createContext,
@@ -9,43 +9,11 @@ import {
   useMemo,
   type ReactNode,
 } from 'react';
-import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { darkColors, lightColors, spacing, radius, typography, fontSizes, lineHeights } from '@/constants/theme';
 import type { ThemeMode } from '@/constants/theme';
 
-// Use a less strict type to allow both dark and light colors
-type ThemeColors = {
-  background: string;
-  foreground: string;
-  card: string;
-  cardElevated: string;
-  popover: string;
-  primary: string;
-  primaryForeground: string;
-  secondary: string;
-  secondaryForeground: string;
-  muted: string;
-  mutedForeground: string;
-  accent: string;
-  accentForeground: string;
-  accentDim: string;
-  accentBorder: string;
-  accentSoft: string;
-  destructive: string;
-  destructiveForeground: string;
-  destructiveSoft: string;
-  border: string;
-  input: string;
-  ring: string;
-  chart1: string;
-  chart2: string;
-  chart3: string;
-  chart4: string;
-  chart5: string;
-  success: string;
-  warning: string;
-  error: string;
-};
+type ThemeColors = Record<keyof typeof darkColors, string>;
 
 type ThemeContextValue = {
   theme: ThemeMode;
@@ -56,39 +24,53 @@ type ThemeContextValue = {
   fontSizes: typeof fontSizes;
   lineHeights: typeof lineHeights;
   isDark: boolean;
-  setTheme: (mode: ThemeMode) => void;
-  toggleTheme: () => void;
+  setTheme: (mode: ThemeMode) => Promise<void>;
+  toggleTheme: () => Promise<void>;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'se7enfit_theme_mode';
 
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === 'dark' || value === 'light';
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const systemColorScheme = useColorScheme();
   const [theme, setThemeState] = useState<ThemeMode>('dark');
 
-  // Load saved theme on mount
   useEffect(() => {
+    let mounted = true;
+
     const loadTheme = async () => {
       try {
-        // For now, default to dark theme
-        // In a native build, use AsyncStorage or SecureStore
-        setThemeState('dark');
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (mounted && isThemeMode(savedTheme)) {
+          setThemeState(savedTheme);
+        }
       } catch {
-        setThemeState('dark');
+        if (mounted) setThemeState('dark');
       }
     };
+
     loadTheme();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const setTheme = (mode: ThemeMode) => {
+  const setTheme = async (mode: ThemeMode) => {
     setThemeState(mode);
-    // In a native build, persist with AsyncStorage or SecureStore
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      // Theme still changes for the current session even if persistence fails.
+    }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+  const toggleTheme = async () => {
+    await setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const colors = theme === 'dark' ? darkColors : lightColors;
@@ -109,11 +91,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [theme, colors]
   );
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {

@@ -22,6 +22,7 @@ import type {
   AdvertisementBadgeVariant,
 } from '@/src/types/advertisement';
 import { getBadgeFromType, isAdActive } from '@/src/types/advertisement';
+import { spacing, radius, typography, darkColors } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CAROUSEL_WIDTH = SCREEN_WIDTH - 24 * 2;
@@ -31,7 +32,7 @@ const AUTO_SLIDE_INTERVAL = 4000; // 4 seconds
 // Badge colors by type
 const BADGE_COLORS: Record<AdvertisementBadgeVariant, string> = {
   AD: '#F5A623',
-  OFFER: '#29E06B',
+  OFFER: '#20c55d',
   PROMO: '#A78BFA',
   ANNOUNCEMENT: '#38BDF8',
 };
@@ -47,11 +48,11 @@ export default function AdvertisementCarousel({
   onImpression,
   onClick,
 }: Props) {
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors } = useTheme();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
-  const autoSlideTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSlideTimer = useRef<number | null>(null);
   const trackedImpressions = useRef<Set<string>>(new Set());
   const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -135,7 +136,7 @@ export default function AdvertisementCarousel({
           height: CARD_HEIGHT,
         }}
       >
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, { backgroundColor: colors.cardElevated, borderColor: colors.accentBorder }]}>
           {/* Background image or gradient */}
           {ad.imageUrl ? (
             <Image
@@ -152,15 +153,15 @@ export default function AdvertisementCarousel({
           <View style={styles.contentContainer}>
             {/* Badge */}
             <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-              <Text style={styles.badgeText}>{ad.badgeText || badge}</Text>
+              <Text style={[styles.badgeText, { color: colors.background }]}>{ad.badgeText || badge}</Text>
             </View>
 
             {/* Title and description */}
             <View style={styles.textContainer}>
-              <Text style={styles.title} numberOfLines={2}>
+              <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>
                 {ad.title}
               </Text>
-              <Text style={styles.description} numberOfLines={2}>
+              <Text style={[styles.description, { color: colors.mutedForeground }]} numberOfLines={2}>
                 {ad.description}
               </Text>
             </View>
@@ -171,10 +172,10 @@ export default function AdvertisementCarousel({
                 onPress={() => handleCTAPress(ad)}
                 style={({ pressed }) => [
                   styles.ctaButton,
-                  { opacity: pressed ? 0.85 : 1 },
+                  { backgroundColor: colors.accent, opacity: pressed ? 0.85 : 1 },
                 ]}
               >
-                <Text style={styles.ctaText}>{ad.ctaText}</Text>
+                <Text style={[styles.ctaText, { color: colors.background }]}>{ad.ctaText}</Text>
                 {ad.ctaTargetType === 'external_url' ? (
                   <ExternalLink size={12} color={colors.background} />
                 ) : (
@@ -217,7 +218,8 @@ export default function AdvertisementCarousel({
               key={index}
               style={[
                 styles.dot,
-                index === activeIndex && styles.activeDot,
+                { backgroundColor: colors.muted },
+                index === activeIndex && { backgroundColor: colors.accent, width: 20 },
               ]}
             />
           ))}
@@ -238,9 +240,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: colors.cardElevated,
+    backgroundColor: darkColors.cardElevated,
     borderWidth: 1,
-    borderColor: colors.accentBorder,
+    borderColor: darkColors.accentBorder,
   },
   backgroundImage: {
     position: 'absolute',
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: typography.bodySemibold,
     fontSize: 10,
-    color: colors.background,
+    color: darkColors.background,
     letterSpacing: 0.5,
   },
   textContainer: {
@@ -281,13 +283,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: typography.headingBold,
     fontSize: 16,
-    color: colors.foreground,
+    color: darkColors.foreground,
     marginBottom: 4,
   },
   description: {
     fontFamily: typography.body,
     fontSize: 12,
-    color: colors.mutedForeground,
+    color: darkColors.mutedForeground,
     lineHeight: 16,
   },
   ctaButton: {
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.accent,
+    backgroundColor: darkColors.accent,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -305,7 +307,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: typography.bodySemibold,
     fontSize: 12,
-    color: colors.background,
+    color: darkColors.background,
   },
   pagination: {
     flexDirection: 'row',
@@ -318,10 +320,10 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.muted,
+    backgroundColor: darkColors.muted,
   },
   activeDot: {
     width: 20,
-    backgroundColor: colors.accent,
+    backgroundColor: darkColors.accent,
   },
 });

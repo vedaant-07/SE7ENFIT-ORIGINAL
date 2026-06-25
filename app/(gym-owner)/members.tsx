@@ -9,17 +9,20 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { memberService, type GymMember } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const STATUS_COLOR: Record<GymMember['status'], string> = {
-  active: colors.accent,
-  expired: colors.error,
-  frozen: colors.warning,
+  active: '#29E06B',
+  expired: '#EF4444',
+  frozen: '#F5A623',
 };
 
 export default function Members() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => memberService.list());
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');

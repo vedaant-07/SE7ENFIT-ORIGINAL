@@ -1,132 +1,101 @@
 // Health Service - SE7EN FIT
 // Cross-platform health data service.
-// iOS: HealthKit (requires native prebuild)
-// Android: Health Connect (requires Health Connect app installed)
+// iOS: HealthKit via react-native-health in native builds.
+// Android: Health Connect via react-native-health-connect in native builds.
 
 import { Platform } from 'react-native';
-import type { HealthSyncStatus, HealthDataPoint, HealthDataType, HealthPermissions } from './healthTypes';
+import { trackingService } from '@/services/userServices';
+import { healthConnectService } from './androidHealthConnect';
+import { healthKitService } from './iosHealthKit';
+import type { HealthDataPoint, HealthDataType, HealthPermissions, HealthSyncStatus } from './healthTypes';
 
-// Platform-specific implementations
-let healthModule: {
-  isAvailable: () => Promise<boolean>;
-  requestPermissions: (permissions: HealthPermissions) => Promise<boolean>;
-  hasPermissions: () => Promise<boolean>;
-  readData: (type: HealthDataType, startDate: Date, endDate: Date) => Promise<HealthDataPoint[]>;
-  writeData: (data: HealthDataPoint) => Promise<boolean>;
-} | null = null;
+const DEFAULT_PERMISSIONS: HealthPermissions = {
+  read: ['steps', 'calories', 'active_energy', 'distance', 'heart_rate', 'sleep', 'weight', 'height', 'water'],
+  write: ['workout', 'calories', 'active_energy', 'water', 'weight'],
+};
 
-// Lazy load platform-specific module
-async function getHealthModule() {
-  if (healthModule) return healthModule;
-
-  if (Platform.OS === 'ios') {
-    // HealthKit requires native prebuild
-    // TODO: Install expo-health-kit or react-native-health and configure
-    // Currently returns placeholder
-    healthModule = {
-      isAvailable: async () => false, // Will be true after native setup
-      requestPermissions: async () => false,
-      hasPermissions: async () => false,
-      readData: async () => [],
-      writeData: async () => false,
-    };
-  } else if (Platform.OS === 'android') {
-    // Health Connect requires native prebuild
-    // TODO: Install react-native-health-connect and configure
-    // Currently returns placeholder
-    healthModule = {
-      isAvailable: async () => false, // Will be true after native setup
-      requestPermissions: async () => false,
-      hasPermissions: async () => false,
-      readData: async () => [],
-      writeData: async () => false,
-    };
-  } else {
-    // Web - no health data
-    healthModule = {
-      isAvailable: async () => false,
-      requestPermissions: async () => false,
-      hasPermissions: async () => false,
-      readData: async () => [],
-      writeData: async () => false,
-    };
-  }
-
-  return healthModule;
+function getHealthModule() {
+  if (Platform.OS === 'ios') return healthKitService;
+  if (Platform.OS === 'android') return healthConnectService;
+  return null;
 }
 
 export async function isHealthAvailable(): Promise<boolean> {
-  const module = await getHealthModule();
-  return module.isAvailable();
+  const module = getHealthModule();
+  return module ? module.isAvailable() : false;
 }
 
 export async function getHealthSyncStatus(): Promise<HealthSyncStatus> {
-  const available = await isHealthAvailable();
   const platform = Platform.OS as 'ios' | 'android' | 'web';
+  const module = getHealthModule();
+  if (!module) {
+    return { available: false, platform, authorizedTypes: [], message: 'Health data is not available on web.' };
+  }
 
+  const available = await module.isAvailable();
   if (!available) {
     return {
       available: false,
       platform,
       authorizedTypes: [],
       message: platform === 'ios'
-        ? 'HealthKit requires a native build. Run `npx expo prebuild` then `npx expo run:ios`.'
-        : platform === 'android'
-          ? 'Health Connect is not available on this device. Install Health Connect app from Play Store and ensure native build is used.'
-          : 'Health data is not available on web.',
+        ? 'HealthKit is available only in a native iOS build with HealthKit entitlement enabled.'
+        : 'Health Connect is available only in a native Android build with the Health Connect provider installed.',
     };
   }
 
-  const hasPerms = await (await getHealthModule()).hasPermissions();
-
+  const hasPerms = await module.hasPermissions();
   return {
     available: true,
     platform,
-    authorizedTypes: hasPerms ? ['steps', 'calories', 'distance', 'heart_rate', 'sleep', 'weight', 'water'] : [],
+    authorizedTypes: hasPerms ? DEFAULT_PERMISSIONS.read : [],
+    message: hasPerms ? undefined : 'Health permission is not granted yet.',
   };
 }
 
-export async function requestHealthPermissions(
-  permissions: HealthPermissions = {
-    read: ['steps', 'calories', 'distance', 'heart_rate', 'sleep', 'weight', 'water'],
-    write: ['workout', 'calories', 'water'],
-  }
-): Promise<boolean> {
-  const module = await getHealthModule();
-  const available = await module.isAvailable();
-
-  if (!available) {
-    console.warn('Health data not available. Native setup required.');
-    return false;
-  }
-
+export async function requestHealthPermissions(permissions: HealthPermissions = DEFAULT_PERMISSIONS): Promise<boolean> {
+  const module = getHealthModule();
+  if (!module || !(await module.isAvailable())) return false;
   return module.requestPermissions(permissions);
 }
 
-export async function readHealthData(
-  type: HealthDataType,
-  startDate: Date,
-  endDate: Date = new Date()
-): Promise<HealthDataPoint[]> {
-  const module = await getHealthModule();
-  const available = await module.isAvailable();
-
-  if (!available) {
-    console.warn('Health data not available. Cannot read.');
-    return [];
-  }
-
+export async function readHealthData(type: HealthDataType, startDate: Date, endDate: Date = new Date()): Promise<HealthDataPoint[]> {
+  const module = getHealthModule();
+  if (!module || !(await module.isAvailable())) return [];
   return module.readData(type, startDate, endDate);
 }
 
 export async function writeHealthData(data: HealthDataPoint): Promise<boolean> {
-  const module = await getHealthModule();
-  const available = await module.isAvailable();
+  const module = getHealthModule();
+  if (!module || !(await module.isAvailable())) return false;
+  return module.writeData(data);
+}
 
-  if (!available) {
-    console.warn('Health data not available. Cannot write.');
-    return false;
+export async function syncTodayHealthToBackend(types: HealthDataType[] = ['steps', 'calories', 'active_energy', 'distance', 'weight', 'water']): Promise<{ synced: number; failed: number }> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  const entries: Array<{ type: string; value: number; unit?: string; date: string; metadata?: Record<string, unknown> }> = [];
+
+  for (const type of types) {
+    const points = await readHealthData(type, start, end);
+    for (const point of points) {
+      if (!Number.isFinite(point.value) || point.value <= 0) continue;
+      entries.push({
+        type: point.type,
+        value: point.value,
+        unit: point.unit,
+        date: point.date.slice(0, 10),
+        metadata: { source: point.source, raw: point.metadata },
+      });
+    }
   }
 
-  return module.writeData(data);
+  if (!entries.length) return { synced: 0, failed: 0 };
+  try {
+    await trackingService.bulkAdd(entries);
+    return { synced: entries.length, failed: 0 };
+  } catch {
+    return { synced: 0, failed: entries.length };
+  }
 }

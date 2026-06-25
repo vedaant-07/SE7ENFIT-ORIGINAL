@@ -2,73 +2,55 @@ workflows:
   android-arm64-apk-preview:
     name: Android ARM64 APK Preview
     max_build_duration: 60
-
+    instance_type: linux_x2
     environment:
       node: 20
       java: 17
       vars:
         EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
-
     scripts:
       - name: Install dependencies
         script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npm install
-
-      - name: Install Expo and EAS CLI
+          npm ci
+      - name: Generate Android project from Expo
         script: |
-          npm install -g expo-cli eas-cli
-
-      - name: Generate native Android project
+          npx expo prebuild --platform android --clean --non-interactive
+      - name: Configure small ARM64 release APK
         script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npx expo prebuild --platform android --clean
-
-      - name: Print Android SHA1 for Google OAuth
-        script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew signingReport
-
+          node scripts/configure-android-arm64-release.js
       - name: Build ARM64 release APK
         script: |
-          cd SE7ENFIT-ORIGINAL-main/android
+          cd android
           chmod +x gradlew
-          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
-
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
     artifacts:
-      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/mapping/release/mapping.txt
 
   android-playstore-aab-production:
     name: Android Play Store AAB Production
     max_build_duration: 60
-
+    instance_type: linux_x2
     environment:
       node: 20
       java: 17
       vars:
         EXPO_PUBLIC_API_BASE_URL: "https://se7en-fit.onrender.com"
-
     scripts:
       - name: Install dependencies
         script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npm install
-
-      - name: Install Expo and EAS CLI
+          npm ci
+      - name: Generate Android project from Expo
         script: |
-          npm install -g expo-cli eas-cli
-
-      - name: Generate native Android project
+          npx expo prebuild --platform android --clean --non-interactive
+      - name: Configure Android release optimizations
         script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npx expo prebuild --platform android --clean
-
-      - name: Build release AAB
+          node scripts/configure-android-arm64-release.js --aab
+      - name: Build production AAB
         script: |
-          cd SE7ENFIT-ORIGINAL-main/android
+          cd android
           chmod +x gradlew
-          ./gradlew bundleRelease
-
+          ./gradlew :app:bundleRelease --no-daemon
     artifacts:
-      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/mapping/release/mapping.txt

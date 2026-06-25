@@ -1,14 +1,16 @@
 // Auth service — talks to your Render backend (https://se7en-fit.onrender.com).
-// Server mounts auth routes at: /api/auth/*
-// Backend response shape: { success, token, user } — normalized to { access_token, user } here.
+// Routes: login, register, verifyOtp, resendOtp, me, logout.
+//
+// Adjust paths here if your backend uses different ones — the rest of the
+// app only imports from this service, so this is the single source of truth.
 
-import { apiFetch } from './apiClient';
+import { api, apiFetch } from './apiClient';
 
 export type AuthUser = {
   id: string;
   email: string;
-  name?: string;
-  role?: string; // 'USER' | 'OWNER' | 'ADMIN'
+  role?: 'user' | 'gym_owner';
+  // The backend may attach additional fields (name, etc.).
   [key: string]: unknown;
 };
 
@@ -20,15 +22,15 @@ export type AuthSession = {
 export type LoginPayload = {
   email: string;
   password: string;
-  role?: string;
 };
 
 export type RegisterPayload = {
   email: string;
   password: string;
+  // Optional fields sent in some flows.
   name?: string;
   mobile?: string;
-  role?: string;
+  role?: 'user' | 'gym_owner';
 };
 
 export type VerifyOtpPayload = {
@@ -36,110 +38,40 @@ export type VerifyOtpPayload = {
   otpCode: string;
 };
 
-// Backend returns { success, token, user } — normalize to { access_token, user }.
-type BackendAuthResponse = {
-  success?: boolean;
-  token?: string;
-  access_token?: string;
-  user?: AuthUser;
-  message?: string;
-};
-
-function normalizeSession(raw: BackendAuthResponse): AuthSession {
-  const token = raw.access_token || raw.token || '';
-  const user = raw.user;
-
-  // Normalize backend role (OWNER/USER) to lowercase for frontend
-  if (user && user.role) {
-    if (String(user.role).toUpperCase() === 'OWNER') {
-      user.role = 'gym_owner';
-    } else if (String(user.role).toUpperCase() === 'USER') {
-      user.role = 'user';
-    } else if (String(user.role).toUpperCase() === 'ADMIN') {
-      user.role = 'admin';
-    }
-  }
-
-  return { access_token: token, user };
-}
-
-// Backend /me returns { success, user } — extract just the user.
-type BackendMeResponse = {
-  success?: boolean;
-  user?: AuthUser;
-};
-
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthSession> {
-    const raw = await apiFetch<BackendAuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: payload,
-      auth: false,
-    });
-    return normalizeSession(raw);
+    // Replace with the exact backend route for email/password login.
+    return api.post<AuthSession>('/auth/login', payload, false);
   },
 
   async register(payload: RegisterPayload): Promise<AuthSession | { requires_otp: true } | void> {
-    const raw = await apiFetch<BackendAuthResponse>('/api/auth/register', {
-      method: 'POST',
-      body: {
-        email: payload.email,
-        password: payload.password,
-        name: payload.name,
-        phone: payload.mobile,
-        role: payload.role,
-      },
-      auth: false,
-    });
-    if (raw.token || raw.access_token) {
-      return normalizeSession(raw);
-    }
-  },
-
-  async loginWithGoogle(idToken: string, role?: string): Promise<AuthSession> {
-    const raw = await apiFetch<BackendAuthResponse>('/api/auth/google', {
-      method: 'POST',
-      body: { idToken, role },
-      auth: false,
-    });
-    return normalizeSession(raw);
+    // Web registers then triggers OTP. Backend should accept this shape.
+    return api.post<AuthSession | { requires_otp: true }>('/auth/register', payload, false);
   },
 
   async verifyOtp(payload: VerifyOtpPayload): Promise<AuthSession> {
-    const raw = await apiFetch<BackendAuthResponse>('/api/auth/verify-otp', {
-      method: 'POST',
-      body: payload,
-      auth: false,
-    });
-    return normalizeSession(raw);
+    return api.post<AuthSession>('/auth/verify-otp', payload, false);
   },
 
   async resendOtp(email: string): Promise<void> {
-    await apiFetch('/api/auth/resend-otp', {
-      method: 'POST',
-      body: { email },
-      auth: false,
-    });
+    return api.post('/auth/resend-otp', { email }, false);
   },
 
   async me(): Promise<AuthUser> {
-    const raw = await apiFetch<BackendMeResponse | AuthUser>('/api/auth/me', {
-      method: 'GET',
-      auth: true,
-    });
-    // Handle both { success, user } and plain user object
-    if (raw && typeof raw === 'object' && 'user' in raw && (raw as BackendMeResponse).user) {
-      const user = (raw as BackendMeResponse).user!;
-      return normalizeSession({ user }).user!;
-    }
-    return raw as AuthUser;
+    return api.get<AuthUser>('/auth/me');
   },
 
   async logout(): Promise<void> {
+    // Best-effort — clear local token even if backend call fails.
     try {
-      await apiFetch('/api/auth/logout', { method: 'POST', body: {} });
+      await api.post('/auth/logout', {});
     } catch {
-      /* ignored — always clear local token */
+      /* ignored */
     }
+  },
+
+  // Google OAuth — left as a placeholder. Wire to your provider flow when ready.
+  async loginWithGoogle(): Promise<never> {
+    throw new Error('Google sign-in is not yet wired to the Render backend.');
   },
 };

@@ -8,14 +8,17 @@ import StatCard from '@/components/se7enfit/StatCard';
 import ProgressRing from '@/components/se7enfit/ProgressRing';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { progressService } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const WEEK_DATA = [60, 75, 45, 90, 80, 0, 0];
 
 export default function Progress() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error } = useAsync(() => progressService.getSummary());
 
   if (loading) return <LoadingScreen />;

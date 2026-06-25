@@ -5,9 +5,10 @@ import { Send, Sparkles } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import TopBar from '@/components/se7enfit/TopBar';
 import Input from '@/components/se7enfit/Input';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { workoutService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -28,6 +29,8 @@ const SUGGESTIONS = [
 ];
 
 export default function AITrainer() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);

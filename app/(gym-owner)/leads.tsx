@@ -9,21 +9,24 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { leadService, type Lead } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const STATUS_COLOR: Record<Lead['status'], string> = {
-  new: colors.accent,
+  new: '#29E06B',
   contacted: '#38BDF8',
-  converted: colors.accent,
-  lost: colors.error,
+  converted: '#29E06B',
+  lost: '#EF4444',
 };
 
 const STATUSES: Lead['status'][] = ['new', 'contacted', 'converted', 'lost'];
 
 export default function Leads() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const [filter, setFilter] = useState<Lead['status'] | 'all'>('all');
   const { data, loading, error, reload } = useAsync(() => leadService.list(filter === 'all' ? undefined : { status: filter }), [filter]);
   const [adding, setAdding] = useState(false);

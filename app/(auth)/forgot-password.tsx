@@ -11,12 +11,15 @@ import Button from '@/components/se7enfit/Button';
 import OTPInput from '@/components/se7enfit/OTPInput';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import Logo from '@/components/se7enfit/Logo';
-import { colors, typography } from '@/constants/theme';
+
 import { api, ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Step = 'request' | 'reset';
 
 export default function ForgotPassword() {
+  const { colors, typography } = useTheme();
+
   const router = useRouter();
   const [step, setStep] = useState<Step>('request');
   const [email, setEmail] = useState('');

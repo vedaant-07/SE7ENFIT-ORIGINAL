@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import {
   Bell, Building2, ChevronRight, ClipboardList, Dumbbell, IndianRupee,
   LogOut, MessageSquare, Megaphone, Settings, Star, Ticket, Trophy, Users,
@@ -10,11 +10,12 @@ import Card from '@/components/se7enfit/Card';
 import StatCard from '@/components/se7enfit/StatCard';
 import TopBar from '@/components/se7enfit/TopBar';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { gymOwnerService, type GymOwner } from '@/services/gymOwnerServices';
 import { earningsService } from '@/services/gymOwnerServices';
 import type { EarningSummary } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type NavTile = {
   icon: typeof Bell;
@@ -39,6 +40,8 @@ const NAV_TILES: NavTile[] = [
 ];
 
 export default function GymOwnerDashboard() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const { logout, user } = useAuth();
   const [owner, setOwner] = useState<GymOwner | null>(null);
@@ -129,7 +132,7 @@ export default function GymOwnerDashboard() {
           return (
             <Pressable
               key={tile.label}
-              onPress={() => router.push(tile.href)}
+              onPress={() => router.push(tile.href as Href)}
               style={({ pressed }) => ({
                 width: '50%',
                 padding: 3,

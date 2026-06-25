@@ -8,11 +8,14 @@ import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import TopBar from '@/components/se7enfit/TopBar';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { gymOwnerService } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function GymOwnerOnboarding() {
+  const { colors, spacing, typography } = useTheme();
+
   const router = useRouter();
   const [gymName, setGymName] = useState('');
   const [address, setAddress] = useState('');

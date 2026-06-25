@@ -4,15 +4,19 @@ import { Building2, MapPin, Phone } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
 import TopBar from '@/components/se7enfit/TopBar';
+import ThemeModeSelector from '@/components/se7enfit/ThemeModeSelector';
 import Button from '@/components/se7enfit/Button';
 import Input from '@/components/se7enfit/Input';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { gymOwnerService, type GymOwner } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function GymProfile() {
+  const { colors, spacing, typography } = useTheme();
+
   const [owner, setOwner] = useState<GymOwner | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,6 +70,10 @@ export default function GymProfile() {
           ) : null}
         </Card>
       )}
+
+      <Card style={{ marginBottom: spacing.lg }}>
+        <ThemeModeSelector />
+      </Card>
 
       <View style={{ gap: spacing.md }}>
         <Input label="Gym Name" leftIcon={<Building2 size={16} color={colors.mutedForeground} />} value={form.gym_name || ''} onChangeText={set('gym_name')} />

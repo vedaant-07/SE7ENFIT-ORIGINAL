@@ -14,7 +14,16 @@
       "infoPlist": {
         "NSHealthShareUsageDescription": "SE7EN FIT uses HealthKit to read your workout, nutrition, and health data to track your progress.",
         "NSHealthUpdateUsageDescription": "SE7EN FIT uses HealthKit to save your workout and nutrition data.",
-        "NSCameraUsageDescription": "SE7EN FIT needs camera access to scan food and take profile photos."
+        "NSCameraUsageDescription": "SE7EN FIT needs camera access to scan food and take profile photos.",
+        "NSUserNotificationsUsageDescription": "SE7EN FIT sends workout, attendance, payment, progress, and gym notification reminders.",
+        "NSMotionUsageDescription": "SE7EN FIT uses motion and fitness data to improve live workout and activity tracking.",
+        "UIBackgroundModes": [
+          "fetch",
+          "processing"
+        ],
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "SE7ENFIT_BACKGROUND_SYNC_TASK"
+        ]
       },
       "entitlements": {
         "com.apple.developer.healthkit": true
@@ -26,7 +35,21 @@
         "android.permission.INTERNET",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_HEIGHT",
+        "android.permission.health.READ_HYDRATION",
+        "android.permission.health.WRITE_EXERCISE",
+        "android.permission.health.WRITE_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.WRITE_WEIGHT",
+        "android.permission.health.WRITE_HYDRATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
@@ -54,18 +77,24 @@
         {
           "photosPermission": "SE7EN FIT needs photo library access to select profile photos."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "primaryColor": "#D4FF00",
-      "backgroundColor": "#050505",
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
-    },
-    "owner": "se7enfit"
+      "primaryColor": "#20c55d",
+      "backgroundColor": "#050505"
+    }
   }
 }

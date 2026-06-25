@@ -12,7 +12,7 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import {
   getGymOwnerAdvertisements,
@@ -23,6 +23,7 @@ import {
   activateGymOwnerAdvertisement,
 } from '@/services/advertisementService';
 import type { Advertisement, AdvertisementType, AdvertisementStatus, AdvertisementTargetType } from '@/src/types/advertisement';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const AD_TYPES: { value: AdvertisementType; label: string; icon: typeof Tag }[] = [
   { value: 'announcement', label: 'Announcement', icon: Bell },
@@ -31,11 +32,11 @@ const AD_TYPES: { value: AdvertisementType; label: string; icon: typeof Tag }[] 
 ];
 
 const STATUS_COLORS: Record<AdvertisementStatus, string> = {
-  active: colors.accent,
-  paused: colors.warning,
+  active: '#29E06B',
+  paused: '#F5A623',
   scheduled: '#38BDF8',
-  expired: colors.mutedForeground,
-  draft: colors.mutedForeground,
+  expired: '#8C8C8C',
+  draft: '#8C8C8C',
 };
 
 type FormData = {
@@ -61,6 +62,8 @@ const emptyForm: FormData = {
 };
 
 export default function GymOwnerAdvertisements() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => getGymOwnerAdvertisements());
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

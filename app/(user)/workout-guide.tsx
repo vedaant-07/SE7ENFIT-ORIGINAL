@@ -6,7 +6,8 @@ import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
 import TopBar from '@/components/se7enfit/TopBar';
 import Button from '@/components/se7enfit/Button';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+
 
 type Step = { name: string; sets: number; reps: number; rest_sec: number };
 
@@ -20,6 +21,8 @@ const SAMPLE_STEPS: Step[] = [
 type Phase = 'exercise' | 'rest';
 
 export default function WorkoutGuide() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('exercise');
   const [setNum, setSetNum] = useState(1);

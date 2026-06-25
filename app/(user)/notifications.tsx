@@ -8,9 +8,10 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { notificationService, type AppNotification } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function formatTime(iso: string): string {
   try {
@@ -26,6 +27,8 @@ function formatTime(iso: string): string {
 }
 
 export default function Notifications() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => notificationService.list());
   const [marking, setMarking] = useState(false);
 

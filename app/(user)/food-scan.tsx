@@ -9,11 +9,14 @@ import Card from '@/components/se7enfit/Card';
 import TopBar from '@/components/se7enfit/TopBar';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { nutritionService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function FoodScan() {
+  const { colors, spacing, typography } = useTheme();
+
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<unknown>(null);

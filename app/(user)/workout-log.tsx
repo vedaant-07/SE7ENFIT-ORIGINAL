@@ -9,13 +9,16 @@ import TopBar from '@/components/se7enfit/TopBar';
 import Button from '@/components/se7enfit/Button';
 import Input from '@/components/se7enfit/Input';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { workoutService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type LoggedExercise = { name: string; sets: string; reps: string };
 
 export default function WorkoutLog() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [duration, setDuration] = useState('');

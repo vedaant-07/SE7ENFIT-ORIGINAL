@@ -9,16 +9,19 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { referralService, type Referral } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const STATUS_COLOR: Record<Referral['status'], string> = {
-  pending: colors.warning,
-  converted: colors.accent,
+  pending: '#F5A623',
+  converted: '#29E06B',
 };
 
 export default function Referrals() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => referralService.list());
   const [genBusy, setGenBusy] = useState(false);
 

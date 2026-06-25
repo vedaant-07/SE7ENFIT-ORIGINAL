@@ -9,17 +9,20 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { equipmentService, type Equipment } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const CONDITION_COLOR: Record<NonNullable<Equipment['condition']>, string> = {
-  new: colors.accent,
+  new: '#29E06B',
   good: '#38BDF8',
-  needs_repair: colors.warning,
+  needs_repair: '#F5A623',
 };
 
 export default function EquipmentScreen() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => equipmentService.list());
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');

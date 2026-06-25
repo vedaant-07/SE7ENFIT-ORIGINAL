@@ -1,13 +1,14 @@
 // Base API client for the SE7EN-FIT Render backend.
 // All app code imports from this — no direct fetch() elsewhere.
 //
-// Backend: https://se7enfit-original.onrender.com → TiDB/MySQL
+// Backend: https://se7en-fit.onrender.com (existing) → TiDB/MySQL
 // Auth: bearer token stored in SecureStore, attached as Authorization header.
 
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { API_BASE_URL as CONFIG_API_BASE_URL } from '@/src/config/env';
 
-export const API_BASE_URL = 'https://se7enfit-original.onrender.com';
+export const API_BASE_URL = CONFIG_API_BASE_URL;
 
 const TOKEN_KEY = 'se7enfit_auth_token';
 const USER_KEY = 'se7enfit_user'; // cached user object (JSON)
@@ -154,20 +155,14 @@ export async function apiFetch<T = unknown>(
 
   const isJson =
     res.headers.get('content-type')?.includes('application/json') ?? false;
-  const rawText = isJson ? null : await res.text().catch(() => null);
-  const parsed = isJson ? await res.json().catch(() => null) : rawText;
+  const parsed = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    // When backend returns HTML (e.g. Express "Cannot POST /route"), show a clean message.
-    const isHtml = typeof rawText === 'string' && (rawText.includes('<!DOCTYPE') || rawText.includes('<html'));
-
     const message =
       (isJson && parsed && typeof parsed === 'object' && 'message' in parsed && String((parsed as { message: unknown }).message)) ||
-      (isHtml && res.status === 404 ? 'Endpoint not found on the server.' : null) ||
-      (isHtml ? 'Server error. Please try again later.' : null) ||
-      (typeof rawText === 'string' && !isHtml && rawText.trim().slice(0, 150)) ||
+      (typeof parsed === 'string' && parsed) ||
       `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, isHtml ? null : parsed);
+    throw new ApiError(message, res.status, parsed);
   }
 
   return parsed as T;

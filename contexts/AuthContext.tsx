@@ -90,8 +90,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await authService.me();
         setUser(me);
         await userStore.set(me);
-      } catch {
-        // Keep cached user; token may be stale — guard will surface on next call.
+      } catch (e) {
+        // In production, never allow a cached user through with a token that the
+        // backend has explicitly rejected. Keep cached user only for non-auth
+        // failures such as temporary network issues.
+        if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+          await tokenStore.clear();
+          await userStore.clear();
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setIsLoadingAuth(false);
       }

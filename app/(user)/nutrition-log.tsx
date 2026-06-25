@@ -8,13 +8,16 @@ import TopBar from '@/components/se7enfit/TopBar';
 import Input from '@/components/se7enfit/Input';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { nutritionService } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const MEALS = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];
 
 export default function NutritionLog() {
+  const { colors, spacing, typography } = useTheme();
+
   const router = useRouter();
   const [food, setFood] = useState('');
   const [meal, setMeal] = useState(MEALS[0]);

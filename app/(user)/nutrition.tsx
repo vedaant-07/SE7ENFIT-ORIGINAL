@@ -11,15 +11,18 @@ import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import ProgressRing from '@/components/se7enfit/ProgressRing';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { nutritionService, type NutritionLog } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function kcal(val: unknown): number {
   return typeof val === 'number' ? val : 0;
 }
 
 export default function Nutrition() {
+  const { colors, spacing, typography } = useTheme();
+
   const router = useRouter();
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const { data, loading, error } = useAsync(() => nutritionService.listLogs(date), [date]);

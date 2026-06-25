@@ -9,12 +9,15 @@ import Input from '@/components/se7enfit/Input';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { reviewService, type Review } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Reviews() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => reviewService.list());
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reply, setReply] = useState('');

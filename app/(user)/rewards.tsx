@@ -8,11 +8,14 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { rewardService, type Reward } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Rewards() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error, reload } = useAsync(() => rewardService.list());
   const [redeeming, setRedeeming] = useState<string | null>(null);
 

@@ -3,11 +3,13 @@ import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Gym owner app — stack layout, no bottom nav.
 // Role guard: only accessible by users with role === 'gym_owner'.
 export default function GymOwnerLayout() {
   const { user, token, isLoadingAuth } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function GymOwnerLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' } }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="dashboard" />
       <Stack.Screen name="members" />

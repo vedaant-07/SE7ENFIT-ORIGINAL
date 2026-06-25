@@ -4,11 +4,13 @@ import { Stack } from 'expo-router';
 import BottomNav from '@/components/se7enfit/BottomNav';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // User app — stack layout with persistent bottom navigation.
 // Role guard: only accessible by users with role === 'user'.
 export default function UserLayout() {
   const { user, token, isLoadingAuth } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function UserLayout() {
 
   return (
     <>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="workout" />

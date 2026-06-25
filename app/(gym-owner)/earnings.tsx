@@ -7,15 +7,18 @@ import TopBar from '@/components/se7enfit/TopBar';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { earningsService, type EarningSummary } from '@/services/gymOwnerServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function formatINR(n: number): string {
   return `₹${n.toLocaleString('en-IN')}`;
 }
 
 export default function Earnings() {
+  const { colors, spacing, typography } = useTheme();
+
   const { data, loading, error } = useAsync<EarningSummary>(() => earningsService.summary());
 
   if (loading) return <LoadingScreen />;

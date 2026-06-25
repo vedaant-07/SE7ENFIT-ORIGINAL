@@ -9,9 +9,10 @@ import Button from '@/components/se7enfit/Button';
 import EmptyState from '@/components/se7enfit/EmptyState';
 import LoadingScreen from '@/components/se7enfit/LoadingScreen';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { workoutService, type WorkoutLog } from '@/services/userServices';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function formatDate(iso: string): string {
   try {
@@ -25,10 +26,12 @@ const QUICK_PLANS = [
   { name: 'Push Day', duration: '45 min', icon: Dumbbell, color: '#F5A623' },
   { name: 'Pull Day', duration: '50 min', icon: Dumbbell, color: '#38BDF8' },
   { name: 'Leg Day', duration: '55 min', icon: Dumbbell, color: '#A78BFA' },
-  { name: 'Full Body', duration: '40 min', icon: Dumbbell, color: colors.accent },
+  { name: 'Full Body', duration: '40 min', icon: Dumbbell, color: '#29E06B' },
 ];
 
 export default function Workout() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const { data, loading, error, reload } = useAsync(() => workoutService.listLogs());
   const [generating, setGenerating] = useState(false);

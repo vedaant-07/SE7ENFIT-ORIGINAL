@@ -10,10 +10,11 @@ import Card from '@/components/se7enfit/Card';
 import TopBar from '@/components/se7enfit/TopBar';
 import Button from '@/components/se7enfit/Button';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+
 import { useAsync } from '@/hooks/useAsync';
 import { subscriptionService, type Subscription } from '@/services/userServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // SE7EN FIT subscription plans (exact match to product requirements)
 const PLANS = [
@@ -66,6 +67,8 @@ const PLANS = [
 ];
 
 export default function Subscription() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const { data: subs } = useAsync(() => subscriptionService.getByUser());
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [error, setError] = useState('');

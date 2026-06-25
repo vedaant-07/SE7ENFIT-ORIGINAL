@@ -2,9 +2,10 @@
 // Home / Workout / AI / Challenges / Track. Renders a floating rounded bar.
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, View, Text } from 'react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, type Href } from 'expo-router';
 import { Activity, Bot, Dumbbell, Home as HomeIcon, Trophy, type LucideIcon } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+
 
 type NavItem = { href: string; icon: LucideIcon; label: string };
 
@@ -17,10 +18,11 @@ const NAV: NavItem[] = [
 ];
 
 export default function BottomNav() {
+  const { colors, radius, spacing, typography } = useTheme();
+
   const router = useRouter();
   const path = usePathname();
   const insets = useSafeAreaInsets();
-  const { colors, radius, spacing, typography, isDark } = useTheme();
 
   return (
     <View
@@ -31,21 +33,18 @@ export default function BottomNav() {
         left: 0,
         right: 0,
         paddingBottom: insets.bottom,
-        backgroundColor: isDark ? 'rgba(13, 13, 13, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+        backgroundColor: 'rgba(13, 13, 13, 0.98)',
         borderTopWidth: 1,
-        borderTopColor: colors.border,
+        borderTopColor: 'rgba(41, 41, 41, 0.6)',
       }}
     >
-      <View style={{
-        flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
-        paddingHorizontal: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.md,
-      }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.md }}>
         {NAV.map(({ href, icon: Icon, label }) => {
           const active = path === href || (href !== '/(user)' && path.startsWith(href));
           return (
             <Pressable
               key={href}
-              onPress={() => router.replace(href)}
+              onPress={() => router.replace(href as Href)}
               style={({ pressed }) => ({
                 alignItems: 'center',
                 gap: 4,
@@ -56,16 +55,10 @@ export default function BottomNav() {
               })}
             >
               <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 40, height: 32 }}>
-                {active && (
-                  <View style={{ position: 'absolute', inset: 0, backgroundColor: colors.accentSoft, borderRadius: radius.md }} />
-                )}
+                {active && <View style={{ position: 'absolute', inset: 0, backgroundColor: colors.accentSoft, borderRadius: radius.md }} />}
                 <Icon size={20} color={active ? colors.accent : colors.mutedForeground} strokeWidth={active ? 2.5 : 1.8} />
               </View>
-              <Text style={{
-                fontSize: 10,
-                fontFamily: active ? typography.bodySemibold : typography.body,
-                color: active ? colors.accent : colors.mutedForeground,
-              }}>
+              <Text style={{ fontSize: 10, fontFamily: active ? typography.bodySemibold : typography.body, color: active ? colors.accent : colors.mutedForeground }}>
                 {label}
               </Text>
             </Pressable>

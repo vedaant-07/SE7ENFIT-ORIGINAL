@@ -8,12 +8,15 @@ import Button from '@/components/se7enfit/Button';
 import OTPInput from '@/components/se7enfit/OTPInput';
 import ErrorBanner from '@/components/se7enfit/ErrorBanner';
 import Logo from '@/components/se7enfit/Logo';
-import { colors, typography } from '@/constants/theme';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { gymOwnerService } from '@/services/gymOwnerServices';
 import { ApiError } from '@/services/apiClient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function GymOwnerSignup() {
+  const { colors, typography } = useTheme();
+
   const router = useRouter();
   const { register, verifyOtp } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
