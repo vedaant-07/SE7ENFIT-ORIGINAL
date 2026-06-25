@@ -1,5 +1,3 @@
-// Bottom navigation used inside the user app. Mirrors the web BottomNav:
-// Home / Workout / AI / Challenges / Track. Renders a floating rounded bar.
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, View, Text } from 'react-native';
 import { usePathname, useRouter, type Href } from 'expo-router';
@@ -12,7 +10,7 @@ const NAV: NavItem[] = [
   { href: '/(user)', activePath: '/(user)', icon: HomeIcon, label: 'Home' },
   { href: '/(user)/workout', activePath: '/(user)/workout', icon: Dumbbell, label: 'Workout' },
   { href: '/(user)/ai-trainer', activePath: '/(user)/ai-trainer', icon: Bot, label: 'AI' },
-  { href: '/(user)/challenges', activePath: '/(user)/challenges', icon: Trophy, label: 'Challenges' },
+  { href: '/(user)/challenges', activePath: '/(user)/challenges', icon: Trophy, label: 'Challenge' },
   { href: '/(user)/tracking', activePath: '/(user)/tracking', icon: Activity, label: 'Track' },
 ];
 
@@ -20,7 +18,7 @@ export default function BottomNav() {
   const router = useRouter();
   const path = usePathname();
   const insets = useSafeAreaInsets();
-  const { colors, radius, spacing, typography, isDark } = useTheme();
+  const { colors, radius, spacing, typography } = useTheme();
 
   return (
     <View
@@ -30,16 +28,27 @@ export default function BottomNav() {
         bottom: 0,
         left: 0,
         right: 0,
-        paddingBottom: insets.bottom,
-        backgroundColor: isDark ? 'rgba(13, 13, 13, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+        paddingHorizontal: spacing.lg,
+        paddingBottom: Math.max(insets.bottom, spacing.sm),
+        paddingTop: spacing.sm,
+        backgroundColor: 'rgba(2, 4, 3, 0.96)',
         borderTopWidth: 1,
         borderTopColor: colors.border,
       }}
     >
-      <View style={{
-        flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
-        paddingHorizontal: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.md,
-      }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: radius.xl,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.glass,
+          paddingHorizontal: spacing.xs,
+          paddingVertical: spacing.xs,
+        }}
+      >
         {NAV.map(({ href, activePath, icon: Icon, label }) => {
           const active = path === activePath || (activePath !== '/(user)' && path.startsWith(activePath));
           return (
@@ -47,25 +56,36 @@ export default function BottomNav() {
               key={activePath}
               onPress={() => router.replace(href)}
               style={({ pressed }) => ({
+                flex: 1,
                 alignItems: 'center',
-                gap: 4,
-                paddingVertical: 6,
-                paddingHorizontal: 16,
-                borderRadius: radius.md,
-                opacity: pressed ? 0.7 : 1,
+                justifyContent: 'center',
+                gap: 3,
+                paddingVertical: 8,
+                borderRadius: radius.lg,
+                backgroundColor: active ? colors.accentSoft : 'transparent',
+                opacity: pressed ? 0.72 : 1,
               })}
             >
-              <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 40, height: 32 }}>
-                {active && (
-                  <View style={{ position: 'absolute', inset: 0, backgroundColor: colors.accentSoft, borderRadius: radius.md }} />
-                )}
-                <Icon size={20} color={active ? colors.accent : colors.mutedForeground} strokeWidth={active ? 2.5 : 1.8} />
+              <View
+                style={{
+                  width: 30,
+                  height: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: radius.full,
+                }}
+              >
+                <Icon size={19} color={active ? colors.accent : colors.mutedForeground} strokeWidth={active ? 2.6 : 1.9} />
               </View>
-              <Text style={{
-                fontSize: 10,
-                fontFamily: active ? typography.bodySemibold : typography.body,
-                color: active ? colors.accent : colors.mutedForeground,
-              }}>
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontSize: 9,
+                  fontFamily: active ? typography.bodySemibold : typography.body,
+                  color: active ? colors.accent : colors.mutedForeground,
+                  includeFontPadding: false,
+                }}
+              >
                 {label}
               </Text>
             </Pressable>
