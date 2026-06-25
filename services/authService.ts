@@ -39,18 +39,31 @@ export type VerifyOtpPayload = {
 };
 
 export const authService = {
-  async login(payload: LoginPayload): Promise<AuthSession> {
-    // Replace with the exact backend route for email/password login.
-    return api.post<AuthSession>('/auth/login', payload, false);
+  async login(payload: LoginPayload & { role?: 'user' | 'gym_owner' }): Promise<AuthSession> {
+    const response = await api.post<{ success: boolean; token: string; user: AuthUser }>('/auth/login', payload, false);
+    return {
+      access_token: response.token,
+      user: response.user,
+    };
   },
 
   async register(payload: RegisterPayload): Promise<AuthSession | { requires_otp: true } | void> {
-    // Web registers then triggers OTP. Backend should accept this shape.
-    return api.post<AuthSession | { requires_otp: true }>('/auth/register', payload, false);
+    const response = await api.post<{ success: boolean; token: string; user: AuthUser }>('/auth/register', payload, false);
+    if (response.token) {
+      return {
+        access_token: response.token,
+        user: response.user,
+      };
+    }
+    return;
   },
 
   async verifyOtp(payload: VerifyOtpPayload): Promise<AuthSession> {
-    return api.post<AuthSession>('/auth/verify-otp', payload, false);
+    const response = await api.post<{ success: boolean; token: string; user: AuthUser }>('/auth/verify-otp', payload, false);
+    return {
+      access_token: response.token,
+      user: response.user,
+    };
   },
 
   async resendOtp(email: string): Promise<void> {
@@ -58,7 +71,8 @@ export const authService = {
   },
 
   async me(): Promise<AuthUser> {
-    return api.get<AuthUser>('/auth/me');
+    const response = await api.get<{ success: boolean; user: AuthUser }>('/auth/me');
+    return response.user;
   },
 
   async logout(): Promise<void> {

@@ -26,7 +26,7 @@ export default function UserLogin() {
     setError('');
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
+      await login({ email: email.trim(), password, role: 'user' });
       router.replace('/(user)');
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Invalid email or password');

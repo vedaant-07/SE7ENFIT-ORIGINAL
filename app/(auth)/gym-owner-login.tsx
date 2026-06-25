@@ -27,7 +27,7 @@ export default function GymOwnerLogin() {
     setError('');
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
+      await login({ email: email.trim(), password, role: 'gym_owner' });
       // Decide whether this account has a gym owner profile yet.
       try {
         const owner = await gymOwnerService.getMine();
