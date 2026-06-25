@@ -2,7 +2,6 @@ workflows:
   android-arm64-apk-preview:
     name: Android ARM64 APK Preview
     max_build_duration: 60
-    instance_type: linux_x2
     environment:
       node: 20
       java: 17
@@ -30,7 +29,6 @@ workflows:
   android-playstore-aab-production:
     name: Android Play Store AAB Production
     max_build_duration: 60
-    instance_type: linux_x2
     environment:
       node: 20
       java: 17
