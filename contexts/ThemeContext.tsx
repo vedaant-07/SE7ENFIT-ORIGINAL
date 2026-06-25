@@ -1,6 +1,3 @@
-// Theme Context - SE7EN FIT
-// Provides dark/light theme switching across the app.
-
 import {
   createContext,
   useContext,
@@ -13,7 +10,7 @@ import { useColorScheme } from 'react-native';
 import { darkColors, lightColors, spacing, radius, typography, fontSizes, lineHeights } from '@/constants/theme';
 import type { ThemeMode } from '@/constants/theme';
 
-type ThemeColors = typeof darkColors;
+type ThemeColors = { [K in keyof typeof darkColors]: string };
 
 type ThemeContextValue = {
   theme: ThemeMode;
@@ -35,15 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('dark');
 
   useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        // The real SE7EN FIT screenshots use dark mode as the product default.
-        setThemeState('dark');
-      } catch {
-        setThemeState('dark');
-      }
-    };
-    loadTheme();
+    setThemeState('dark');
   }, [systemColorScheme]);
 
   const setTheme = (mode: ThemeMode) => {
@@ -54,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const colors = theme === 'dark' ? darkColors : lightColors;
+  const colors: ThemeColors = theme === 'dark' ? darkColors : lightColors;
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -73,9 +62,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 
