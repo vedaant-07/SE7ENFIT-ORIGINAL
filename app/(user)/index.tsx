@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { Activity, Bot, Camera, ChevronRight, Crown, Dumbbell, Flame, Droplets, Footprints, Moon, Scale, Utensils, Trophy, TrendingUp, Zap } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
@@ -43,7 +43,7 @@ const TODAY: TodayStat[] = [
   { icon: Moon, label: 'Sleep', value: 6.5, goal: 8, unit: 'h', color: '#F472B6' },
 ];
 
-type QuickAction = { icon: typeof Bot; label: string; href: string; color: string };
+type QuickAction = { icon: typeof Bot; label: string; href: Href; color: string };
 
 const QUICK_ACTIONS: QuickAction[] = [
   { icon: Bot, label: 'AI Trainer', href: '/(user)/ai-trainer', color: '#29E06B' },
