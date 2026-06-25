@@ -37,7 +37,7 @@ ensureFile(appBuildGradlePath);
 
 let props = fs.readFileSync(gradlePropsPath, 'utf8');
 props = upsertGradleProperty(props, 'android.enableProguardInReleaseBuilds', 'true');
-props = upsertGradleProperty(props, 'android.enableShrinkResourcesInReleaseBuilds', 'true');
+props = upsertGradleProperty(props, 'android.enableShrinkResourcesInReleaseBuilds', 'false');
 props = upsertGradleProperty(props, 'android.useAndroidX', 'true');
 props = upsertGradleProperty(props, 'android.enableJetifier', 'true');
 
