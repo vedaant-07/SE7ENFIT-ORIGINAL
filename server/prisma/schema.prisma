@@ -53,6 +53,7 @@ model User {
   dailyHealthSummaries DailyHealthSummary[]
   workoutSessions WorkoutSession[]
   pushTokens PushToken[]
+  sentEmailMessages EmailMessage[] @relation("OwnerEmailMessages")
 }
 
 model Subscription {
@@ -252,4 +253,28 @@ model PushToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model EmailMessage {
+  id                String    @id @default(cuid())
+  ownerId           String?
+  recipientName     String?
+  to                String
+  from              String?
+  subject           String
+  message           String    @db.Text
+  templateName      String?
+  status            String    @default("queued")
+  providerMessageId String?
+  error             String?   @db.Text
+  sentAt            DateTime?
+  openedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  owner User? @relation("OwnerEmailMessages", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([createdAt])
 }
