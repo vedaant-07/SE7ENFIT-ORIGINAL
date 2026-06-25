@@ -2,18 +2,18 @@
 // Home / Workout / AI / Challenges / Track. Renders a floating rounded bar.
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, View, Text } from 'react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, type Href } from 'expo-router';
 import { Activity, Bot, Dumbbell, Home as HomeIcon, Trophy, type LucideIcon } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
-type NavItem = { href: string; icon: LucideIcon; label: string };
+type NavItem = { href: Href; activePath: string; icon: LucideIcon; label: string };
 
 const NAV: NavItem[] = [
-  { href: '/(user)', icon: HomeIcon, label: 'Home' },
-  { href: '/(user)/workout', icon: Dumbbell, label: 'Workout' },
-  { href: '/(user)/ai-trainer', icon: Bot, label: 'AI' },
-  { href: '/(user)/challenges', icon: Trophy, label: 'Challenges' },
-  { href: '/(user)/tracking', icon: Activity, label: 'Track' },
+  { href: '/(user)', activePath: '/(user)', icon: HomeIcon, label: 'Home' },
+  { href: '/(user)/workout', activePath: '/(user)/workout', icon: Dumbbell, label: 'Workout' },
+  { href: '/(user)/ai-trainer', activePath: '/(user)/ai-trainer', icon: Bot, label: 'AI' },
+  { href: '/(user)/challenges', activePath: '/(user)/challenges', icon: Trophy, label: 'Challenges' },
+  { href: '/(user)/tracking', activePath: '/(user)/tracking', icon: Activity, label: 'Track' },
 ];
 
 export default function BottomNav() {
@@ -40,11 +40,11 @@ export default function BottomNav() {
         flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center',
         paddingHorizontal: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.md,
       }}>
-        {NAV.map(({ href, icon: Icon, label }) => {
-          const active = path === href || (href !== '/(user)' && path.startsWith(href));
+        {NAV.map(({ href, activePath, icon: Icon, label }) => {
+          const active = path === activePath || (activePath !== '/(user)' && path.startsWith(activePath));
           return (
             <Pressable
-              key={href}
+              key={activePath}
               onPress={() => router.replace(href)}
               style={({ pressed }) => ({
                 alignItems: 'center',
