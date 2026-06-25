@@ -1,4 +1,3 @@
-// SE7EN-FIT card — dark elevated surface with 1px border and rounded corners.
 import { type ReactNode } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -7,11 +6,11 @@ type Props = {
   children: ReactNode;
   style?: ViewStyle;
   padded?: boolean;
-  // Renders a 1px accent-tinted top border like the web "cardElevated" look.
   elevated?: boolean;
+  accent?: boolean;
 };
 
-export default function Card({ children, style, padded = true, elevated = false }: Props) {
+export default function Card({ children, style, padded = true, elevated = false, accent = false }: Props) {
   const { colors, radius, spacing } = useTheme();
 
   return (
@@ -20,7 +19,12 @@ export default function Card({ children, style, padded = true, elevated = false 
         backgroundColor: elevated ? colors.cardElevated : colors.card,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: accent ? colors.accentBorder : colors.border,
+        shadowColor: accent ? colors.accent : '#000000',
+        shadowOpacity: accent ? 0.22 : 0.14,
+        shadowRadius: accent ? 18 : 10,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: elevated || accent ? 3 : 1,
         ...(padded ? { padding: spacing.lg } : {}),
         ...style,
       }}
