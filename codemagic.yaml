@@ -12,32 +12,18 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          cd SE7ENFIT-ORIGINAL-main
           npm install
 
-      - name: Install Expo and EAS CLI
+      - name: Typecheck
         script: |
-          npm install -g expo-cli eas-cli
-
-      - name: Generate native Android project
-        script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npx expo prebuild --platform android --clean
-
-      - name: Print Android SHA1 for Google OAuth
-        script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew signingReport
+          npm run typecheck
 
       - name: Build ARM64 release APK
         script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+          npm run build:codemagic:android-arm64
 
     artifacts:
-      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.apk
 
   android-playstore-aab-production:
     name: Android Play Store AAB Production
@@ -52,23 +38,15 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          cd SE7ENFIT-ORIGINAL-main
           npm install
 
-      - name: Install Expo and EAS CLI
+      - name: Typecheck
         script: |
-          npm install -g expo-cli eas-cli
-
-      - name: Generate native Android project
-        script: |
-          cd SE7ENFIT-ORIGINAL-main
-          npx expo prebuild --platform android --clean
+          npm run typecheck
 
       - name: Build release AAB
         script: |
-          cd SE7ENFIT-ORIGINAL-main/android
-          chmod +x gradlew
-          ./gradlew bundleRelease
+          npm run build:codemagic:android-aab
 
     artifacts:
-      - SE7ENFIT-ORIGINAL-main/android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/*.aab

@@ -4,7 +4,7 @@
 // Setup required:
 // 1. Google Cloud Console: https://console.cloud.google.com/apis/credentials
 // 2. Create OAuth 2.0 Client IDs for Web, Android, and iOS
-// 3. Add to .env:
+// 3. Add to .env / EAS env:
 //    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=xxx.apps.googleusercontent.com
 //    EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=xxx.apps.googleusercontent.com
 //    EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=xxx.apps.googleusercontent.com
@@ -18,9 +18,13 @@ import { ResponseType } from 'expo-auth-session';
 // Close browser tab after redirect automatically
 WebBrowser.maybeCompleteAuthSession();
 
-export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-export const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
-export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
+const runtimeEnv = (
+  globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }
+).process?.env;
+
+export const GOOGLE_WEB_CLIENT_ID = runtimeEnv?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
+export const GOOGLE_ANDROID_CLIENT_ID = runtimeEnv?.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
+export const GOOGLE_IOS_CLIENT_ID = runtimeEnv?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
 
 export const isGoogleConfigured = Boolean(GOOGLE_WEB_CLIENT_ID);
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import {
   Bell, Building2, ChevronRight, ClipboardList, Dumbbell, IndianRupee,
-  LogOut, MessageSquare, Megaphone, Settings, Star, Ticket, Trophy, Users,
+  LogOut, MessageSquare, Megaphone, Star, Ticket, Trophy, Users,
 } from 'lucide-react-native';
 import Screen from '@/components/se7enfit/Screen';
 import Card from '@/components/se7enfit/Card';
@@ -19,7 +19,7 @@ import type { EarningSummary } from '@/services/gymOwnerServices';
 type NavTile = {
   icon: typeof Bell;
   label: string;
-  href: string;
+  href: Href;
   desc: string;
 };
 

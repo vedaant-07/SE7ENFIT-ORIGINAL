@@ -13,39 +13,7 @@ import { useColorScheme } from 'react-native';
 import { darkColors, lightColors, spacing, radius, typography, fontSizes, lineHeights } from '@/constants/theme';
 import type { ThemeMode } from '@/constants/theme';
 
-// Use a less strict type to allow both dark and light colors
-type ThemeColors = {
-  background: string;
-  foreground: string;
-  card: string;
-  cardElevated: string;
-  popover: string;
-  primary: string;
-  primaryForeground: string;
-  secondary: string;
-  secondaryForeground: string;
-  muted: string;
-  mutedForeground: string;
-  accent: string;
-  accentForeground: string;
-  accentDim: string;
-  accentBorder: string;
-  accentSoft: string;
-  destructive: string;
-  destructiveForeground: string;
-  destructiveSoft: string;
-  border: string;
-  input: string;
-  ring: string;
-  chart1: string;
-  chart2: string;
-  chart3: string;
-  chart4: string;
-  chart5: string;
-  success: string;
-  warning: string;
-  error: string;
-};
+type ThemeColors = typeof darkColors;
 
 type ThemeContextValue = {
   theme: ThemeMode;
@@ -62,29 +30,24 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'se7enfit_theme_mode';
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [theme, setThemeState] = useState<ThemeMode>('dark');
 
-  // Load saved theme on mount
   useEffect(() => {
     const loadTheme = async () => {
       try {
-        // For now, default to dark theme
-        // In a native build, use AsyncStorage or SecureStore
+        // The real SE7EN FIT screenshots use dark mode as the product default.
         setThemeState('dark');
       } catch {
         setThemeState('dark');
       }
     };
     loadTheme();
-  }, []);
+  }, [systemColorScheme]);
 
   const setTheme = (mode: ThemeMode) => {
     setThemeState(mode);
-    // In a native build, persist with AsyncStorage or SecureStore
   };
 
   const toggleTheme = () => {
