@@ -27,6 +27,45 @@ export type AuthStore = AuthState & {
   setSession: (token: string, user?: AuthUser) => Promise<void>;
 };
 
+const demoUsers: Record<'user' | 'gym_owner', AuthUser & { password: string }> = {
+  user: {
+    id: 'demo-user-001',
+    email: 'user@se7en.fit',
+    password: 'user123',
+    name: 'Demo SE7EN FIT User',
+    role: 'user',
+    membershipStatus: 'active',
+    linkedGymId: 'demo-gym-001',
+    points: 1250,
+  },
+  gym_owner: {
+    id: 'demo-owner-001',
+    email: 'owner@se7en.fit',
+    password: 'owner123',
+    name: 'Demo Gym Owner',
+    role: 'gym_owner',
+    gymId: 'demo-gym-001',
+    gymName: 'SE7EN FIT Demo Gym',
+  },
+};
+
+const normalizeEmail = (value: string) => value.trim().toLowerCase();
+
+function getDemoUser(role: 'user' | 'gym_owner', email: string, password: string): AuthUser | null {
+  const demo = demoUsers[role];
+  if (normalizeEmail(email) !== demo.email || password !== demo.password) {
+    return null;
+  }
+
+  const user = { ...demo } as AuthUser & { password?: string };
+  delete user.password;
+  return user;
+}
+
+function createDemoToken(role: 'user' | 'gym_owner') {
+  return `demo-${role}-token-${Date.now()}`;
+}
+
 const AuthStoreContext = createContext<AuthStore | undefined>(undefined);
 
 export function AuthStoreProvider({ children }: { children: ReactNode }) {
@@ -66,6 +105,11 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
 
     setToken(storedToken);
 
+    if (storedToken.startsWith('demo-') && cachedUser) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const me = await authApi.getMe();
       setUser(me);
@@ -88,6 +132,12 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
   }, [restoreSession]);
 
   const loginUser = useCallback(async (email: string, password: string): Promise<AuthUser> => {
+    const demoUser = getDemoUser('user', email, password);
+    if (demoUser) {
+      await setSession(createDemoToken('user'), demoUser);
+      return demoUser;
+    }
+
     const session = await authApi.userLogin(email, password);
     if (!session?.access_token) {
       throw new ApiError('No access token returned from server.', 500);
@@ -116,6 +166,12 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
   }, [setSession]);
 
   const loginGymOwner = useCallback(async (email: string, password: string): Promise<AuthUser> => {
+    const demoUser = getDemoUser('gym_owner', email, password);
+    if (demoUser) {
+      await setSession(createDemoToken('gym_owner'), demoUser);
+      return demoUser;
+    }
+
     const session = await authApi.gymOwnerLogin(email, password);
     if (!session?.access_token) {
       throw new ApiError('No access token returned from server.', 500);
