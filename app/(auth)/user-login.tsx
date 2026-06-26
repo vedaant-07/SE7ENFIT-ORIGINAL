@@ -18,8 +18,8 @@ export default function UserLogin() {
 
   const router = useRouter();
   const { login, setSession } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('user@se7en.fit');
+  const [password, setPassword] = useState('user123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -77,6 +77,9 @@ export default function UserLogin() {
           <Text style={{ fontFamily: typography.headingBold, fontSize: 24, color: colors.foreground }}>User Login</Text>
           <Text style={{ fontFamily: typography.body, fontSize: 14, color: colors.mutedForeground, marginTop: 6 }}>
             Log in to your fitness account
+          </Text>
+          <Text style={{ fontFamily: typography.body, fontSize: 12, color: colors.accent, marginTop: 8 }}>
+            Demo login: user@se7en.fit / user123
           </Text>
         </View>
 
