@@ -25,7 +25,7 @@ workflows:
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a
+          ./gradlew :app:assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a --stacktrace
     artifacts:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/mapping.txt
@@ -41,7 +41,7 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
+          npm install --legacy-peer-deps
       - name: Generate Android project from Expo
         script: |
           npx expo prebuild --platform android --clean --non-interactive
@@ -52,7 +52,7 @@ workflows:
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --stacktrace
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
       - android/app/build/outputs/mapping/release/mapping.txt
@@ -68,7 +68,7 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
+          npm install --legacy-peer-deps
       - name: Generate Android project from Expo
         script: |
           npx expo prebuild --platform android --clean --non-interactive
@@ -79,7 +79,7 @@ workflows:
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:bundleRelease --no-daemon
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace
     artifacts:
       - android/app/build/outputs/bundle/release/*.aab
       - android/app/build/outputs/mapping/release/mapping.txt
