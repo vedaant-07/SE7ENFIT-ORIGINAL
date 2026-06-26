@@ -1,6 +1,6 @@
 workflows:
   android-test-apk:
-    name: SE7EN FIT Android Test APK
+    name: SE7EN FIT Standalone Test APK
     max_build_duration: 60
     environment:
       node: 22.16.0
@@ -15,19 +15,16 @@ workflows:
       - name: Generate Android project
         script: |
           CI=1 npx expo prebuild --platform android --no-install --clean
-      - name: Force ARM64 Android ABI
+      - name: Configure standalone ARM64 APK
         script: |
-          if [ -f android/gradle.properties ]; then
-            sed -i.bak "s/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/" android/gradle.properties || true
-            grep -q '^reactNativeArchitectures=' android/gradle.properties || echo 'reactNativeArchitectures=arm64-v8a' >> android/gradle.properties
-          fi
-      - name: Build debug APK
+          node scripts/configure-android-arm64-release.js
+      - name: Build standalone APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a --stacktrace
+          ./gradlew :app:assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a --stacktrace
     artifacts:
-      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/apk/release/*.apk
       - android/app/build/outputs/**/mapping.txt
 
   android-arm64-apk-preview:
