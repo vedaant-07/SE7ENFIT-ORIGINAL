@@ -14,13 +14,16 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { gymOwnerService } from '@/services/gymOwnerServices';
 import { useGoogleLogin } from '@/src/services/googleAuthService';
 
+const isDemoOwnerLogin = (email: string, password: string) =>
+  email.trim().toLowerCase() === 'owner@se7en.fit' && password === 'owner123';
+
 export default function GymOwnerLogin() {
   const { colors, spacing, typography } = useTheme();
 
   const router = useRouter();
   const { login, setSession } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('owner@se7en.fit');
+  const [password, setPassword] = useState('owner123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -31,6 +34,10 @@ export default function GymOwnerLogin() {
     setLoading(true);
     try {
       await login({ email: email.trim(), password, role: 'gym_owner' });
+      if (isDemoOwnerLogin(email, password)) {
+        router.replace('/(gym-owner)/dashboard');
+        return;
+      }
       // Decide whether this account has a gym owner profile yet.
       try {
         const owner = await gymOwnerService.getMine();
@@ -97,6 +104,9 @@ export default function GymOwnerLogin() {
           <Text style={{ fontFamily: typography.headingBold, fontSize: 24, color: colors.foreground }}>Gym Owner Login</Text>
           <Text style={{ fontFamily: typography.body, fontSize: 14, color: colors.mutedForeground, marginTop: 6 }}>
             Access your gym dashboard
+          </Text>
+          <Text style={{ fontFamily: typography.body, fontSize: 12, color: colors.accent, marginTop: 8 }}>
+            Demo login: owner@se7en.fit / owner123
           </Text>
         </View>
 
