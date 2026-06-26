@@ -2,8 +2,8 @@
  * SE7EN FIT Android release optimizer for Codemagic.
  * Run after: npx expo prebuild --platform android --clean --non-interactive
  * Purpose:
- * - Preview APK: build only arm64-v8a to reduce APK size.
- * - Production AAB: keep Play Store bundle flow, enable shrink/minify flags.
+ * - Test/preview APK: build only arm64-v8a to reduce APK size and keep minify off for easier testing.
+ * - Production AAB: keep Play Store bundle flow and enable shrink/minify flags.
  * This script only changes generated Android build files. It does not touch app UI.
  */
 const fs = require('fs');
@@ -36,12 +36,15 @@ ensureFile(gradlePropsPath);
 ensureFile(appBuildGradlePath);
 
 let props = fs.readFileSync(gradlePropsPath, 'utf8');
-props = upsertGradleProperty(props, 'android.enableProguardInReleaseBuilds', 'true');
-props = upsertGradleProperty(props, 'android.enableShrinkResourcesInReleaseBuilds', 'false');
 props = upsertGradleProperty(props, 'android.useAndroidX', 'true');
 props = upsertGradleProperty(props, 'android.enableJetifier', 'true');
 
-if (!aabMode) {
+if (aabMode) {
+  props = upsertGradleProperty(props, 'android.enableProguardInReleaseBuilds', 'true');
+  props = upsertGradleProperty(props, 'android.enableShrinkResourcesInReleaseBuilds', 'false');
+} else {
+  props = upsertGradleProperty(props, 'android.enableProguardInReleaseBuilds', 'false');
+  props = upsertGradleProperty(props, 'android.enableShrinkResourcesInReleaseBuilds', 'false');
   props = upsertGradleProperty(props, 'reactNativeArchitectures', 'arm64-v8a');
 }
 
@@ -56,17 +59,19 @@ if (!aabMode && !gradle.includes('include "arm64-v8a"')) {
   );
 }
 
-// Ensure minifyEnabled is true for release builds to use shrinkResources
-gradle = gradle.replace(
-  /(release\s*\{[^}]*)/s,
-  (match) => {
-    if (!match.includes('minifyEnabled')) {
-      return match.replace(/release\s*\{/, 'release {\n            minifyEnabled true\n');
+if (aabMode) {
+  // Ensure minifyEnabled is true only for production AAB builds.
+  gradle = gradle.replace(
+    /(release\s*\{[^}]*)/s,
+    (match) => {
+      if (!match.includes('minifyEnabled')) {
+        return match.replace(/release\s*\{/, 'release {\n            minifyEnabled true\n');
+      }
+      return match;
     }
-    return match;
-  }
-);
+  );
+}
 
 fs.writeFileSync(appBuildGradlePath, gradle);
 
-console.log(`[SE7EN FIT build config] Android release optimization applied. Mode: ${aabMode ? 'AAB production' : 'ARM64 APK preview'}`);
+console.log(`[SE7EN FIT build config] Android config applied. Mode: ${aabMode ? 'AAB production' : 'standalone ARM64 test APK'}`);
