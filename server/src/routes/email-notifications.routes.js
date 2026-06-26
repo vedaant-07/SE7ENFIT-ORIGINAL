@@ -6,6 +6,28 @@ const { getEmailProviderStatus, isEmailConfigured, sendEmail } = require("../lib
 
 const router = express.Router();
 
+function getSafeProviderStatus() {
+  const status = getEmailProviderStatus();
+
+  return {
+    configured: status.configured,
+    provider: status.provider,
+    missing: status.missing,
+    host: status.host,
+    port: status.port,
+    from: status.from,
+  };
+}
+
+// Public diagnostic endpoint for the website/provider banner.
+// It never returns SMTP_PASS or any secret value.
+router.get("/provider-status-public", (req, res) => {
+  return res.json({
+    success: true,
+    data: getSafeProviderStatus(),
+  });
+});
+
 router.use(requireAuth);
 router.use(requireOwner);
 
@@ -36,7 +58,7 @@ function getOwnerScopedWhere(user) {
 router.get("/status", (req, res) => {
   return res.json({
     success: true,
-    data: getEmailProviderStatus(),
+    data: getSafeProviderStatus(),
   });
 });
 
