@@ -7,6 +7,7 @@ const healthRoutes = require("./routes/health.routes");
 const trackingRoutes = require("./routes/tracking.routes");
 const notificationRoutes = require("./routes/notifications.routes");
 const emailNotificationRoutes = require("./routes/email-notifications.routes");
+const supportRoutes = require("./routes/support.routes");
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/tracking", trackingRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/support", supportRoutes);
 app.use("/api/gym-owner/email-notifications", emailNotificationRoutes);
 app.use("/api/email-notifications", emailNotificationRoutes);
 
