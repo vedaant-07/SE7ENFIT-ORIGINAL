@@ -1,4 +1,4 @@
-// Auth service — talks to your Render backend (https://se7en-fit.onrender.com).
+// Auth service — talks to your Render backend (https://se7en-fit.onrender.com/api).
 // Routes: login, register, verifyOtp, resendOtp, me, logout.
 //
 // Adjust paths here if your backend uses different ones — the rest of the
@@ -6,10 +6,12 @@
 
 import { api, apiFetch } from './apiClient';
 
+export type AppRole = 'user' | 'gym_owner' | 'super_admin' | 'admin' | 'staff';
+
 export type AuthUser = {
   id: string;
   email: string;
-  role?: 'user' | 'gym_owner';
+  role?: AppRole;
   // The backend may attach additional fields (name, etc.).
   [key: string]: unknown;
 };
