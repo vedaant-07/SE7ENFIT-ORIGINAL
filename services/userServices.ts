@@ -6,7 +6,8 @@
 // Update the paths here when you confirm the real routes — nothing else
 // in the app needs to change.
 
-import { api } from './apiClient';
+import { Platform } from 'react-native';
+import { api, userStore } from './apiClient';
 
 // ---------- User profile / onboarding ----------
 
@@ -238,7 +239,29 @@ export const communityService = {
     api.post<unknown>('/community/posts', { content, image: imageBase64 }),
 };
 
+type CachedSupportUser = {
+  id?: string;
+  user_id?: string;
+  name?: string;
+  full_name?: string;
+  email?: string;
+  mobile?: string;
+  phone?: string;
+};
+
 export const supportService = {
-  create: (subject: string, message: string) =>
-    api.post<{ ok: true }>('/support/tickets', { subject, message }),
+  async create(subject: string, message: string) {
+    const cachedUser = await userStore.get<CachedSupportUser>();
+
+    return api.post<{ success: boolean; ticket: { id: string; created_at: string } }>('/support', {
+      source: Platform.OS === 'web' ? 'website' : 'app',
+      userId: cachedUser?.user_id || cachedUser?.id || null,
+      userName: cachedUser?.full_name || cachedUser?.name || null,
+      userEmail: cachedUser?.email || null,
+      userPhone: cachedUser?.phone || cachedUser?.mobile || null,
+      subject,
+      message,
+      priority: 'normal',
+    });
+  },
 };
