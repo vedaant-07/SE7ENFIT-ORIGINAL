@@ -1,13 +1,15 @@
 // Auth API - SE7EN FIT
-// User and Gym Owner authentication endpoints.
+// User, Gym Owner, and Admin authentication endpoints.
 
 import { api } from './client';
+
+export type AppRole = 'user' | 'gym_owner' | 'super_admin' | 'admin' | 'staff';
 
 export type AuthUser = {
   id: string;
   email: string;
   name?: string;
-  role: 'user' | 'gym_owner';
+  role: AppRole;
   [key: string]: unknown;
 };
 
