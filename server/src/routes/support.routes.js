@@ -1,6 +1,5 @@
 const express = require("express");
 const { z } = require("zod");
-const { createClient } = require("@supabase/supabase-js");
 
 const router = express.Router();
 
@@ -15,11 +14,7 @@ const supportTicketSchema = z.object({
   priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
 });
 
-let supabase;
-
-function getSupabaseClient() {
-  if (supabase) return supabase;
-
+function getSupabaseConfig() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -32,46 +27,55 @@ function getSupabaseClient() {
     });
   }
 
-  supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
+  return {
+    url: supabaseUrl.replace(/\/$/, ""),
+    key: supabaseKey,
+  };
+}
+
+async function createSupportTicket(payload) {
+  const { url, key } = getSupabaseConfig();
+  const response = await fetch(`${url}/rest/v1/support_tickets?select=id,created_at`, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
     },
+    body: JSON.stringify({
+      source: payload.source,
+      user_id: payload.userId || null,
+      user_name: payload.userName || null,
+      user_email: payload.userEmail || null,
+      user_phone: payload.userPhone || null,
+      subject: payload.subject,
+      message: payload.message,
+      priority: payload.priority,
+      status: "new",
+      is_read: false,
+    }),
   });
 
-  return supabase;
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = data?.message || data?.error || "Could not create support ticket";
+    throw Object.assign(new Error(message), { status: 502, details: data });
+  }
+
+  return Array.isArray(data) ? data[0] : data;
 }
 
 router.post("/", async (req, res, next) => {
   try {
     const payload = supportTicketSchema.parse(req.body);
-    const client = getSupabaseClient();
-
-    const { data, error } = await client
-      .from("support_tickets")
-      .insert({
-        source: payload.source,
-        user_id: payload.userId || null,
-        user_name: payload.userName || null,
-        user_email: payload.userEmail || null,
-        user_phone: payload.userPhone || null,
-        subject: payload.subject,
-        message: payload.message,
-        priority: payload.priority,
-        status: "new",
-        is_read: false,
-      })
-      .select("id, created_at")
-      .single();
-
-    if (error) {
-      throw Object.assign(new Error(error.message), { status: 502 });
-    }
+    const ticket = await createSupportTicket(payload);
 
     res.status(201).json({
       success: true,
       message: "Support request submitted",
-      ticket: data,
+      ticket,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
