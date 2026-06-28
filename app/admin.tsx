@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-
-const ADMIN_DASHBOARD_URL = process.env.EXPO_PUBLIC_ADMIN_DASHBOARD_URL;
+import { ADMIN_DASHBOARD_URL } from '@/src/config/env';
 
 function openAdminDashboard() {
   if (!ADMIN_DASHBOARD_URL) return;
@@ -38,7 +37,7 @@ export default function AdminDashboardRoute() {
           </Pressable>
         ) : (
           <View style={styles.codeBox}>
-            <Text style={styles.codeText}>EXPO_PUBLIC_ADMIN_DASHBOARD_URL=https://your-admin-domain.com/admin</Text>
+            <Text style={styles.codeText}>EXPO_PUBLIC_ADMIN_DASHBOARD_URL=https://se7enfit-admin.onrender.com/admin</Text>
           </View>
         )}
       </View>
