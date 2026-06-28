@@ -13,15 +13,27 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:8081",
+  "http://localhost:19000",
+  ...(process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
+
+// CORS configuration. Native apps usually do not send an Origin header, so allow those.
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8081",
-      "http://localhost:19000",
-      process.env.ALLOWED_ORIGIN || "*",
-    ],
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
   })
 );
