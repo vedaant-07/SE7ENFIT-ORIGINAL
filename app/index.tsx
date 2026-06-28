@@ -27,7 +27,7 @@ export default function Index() {
   // Role-based navigation
   const role = user.role;
 
-  if (ADMIN_ROLES.has(role)) {
+  if (role && ADMIN_ROLES.has(role)) {
     return <Redirect href="/admin" />;
   }
 
